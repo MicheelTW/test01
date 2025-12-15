@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英語學習互動系統 🎓</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* === 滾動問題修正 (已保留) === */
+        html {
+            height: 100%;
+        }
+        /* === 滾動問題修正 (已保留) === */
+
+        body {
+            font-family: 'Microsoft JhengHei', 'PingFang TC', 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #FFE5B4 0%, #FFB6C1 50%, #B0E0E6 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header Styles */
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #FF6B9D;
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .nav-tab {
+            background: white;
+            border: 3px solid #FFB84D;
+            border-radius: 15px;
+            padding: 15px 25px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .nav-tab:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, #FFB84D, #FF6B9D);
+            color: white;
+            border-color: #FF6B9D;
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Flashcard Styles */
+        .flashcard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .flashcard {
+            perspective: 1000px;
+            height: 250px;
+            cursor: pointer;
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .flashcard-front {
+            background: linear-gradient(135deg, #FFE66D, #FFB84D);
+            border: 4px solid #FF6B9D;
+        }
+
+        .flashcard-back {
+            background: linear-gradient(135deg, #4ECDC4, #44A08D);
+            transform: rotateY(180deg);
+            border: 4px solid #FFB84D;
+        }
+
+        .flashcard-emoji {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .flashcard-word {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #333;
+            text-align: center;
+        }
+
+        .flashcard-translation {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: white;
+            text-align: center;
+        }
+
+        /* Quiz Styles */
+        .quiz-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .quiz-progress {
+            background: #E0E0E0;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .quiz-progress-bar {
+            background: linear-gradient(90deg, #4ECDC4, #44A08D);
+            height: 100%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .quiz-score {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #FF6B9D;
+            margin-bottom: 20px;
+        }
+
+        .quiz-question {
+            background: #FFF9E6;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 3px solid #FFB84D;
+        }
+
+        .quiz-question h3 {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .quiz-options {
+           display: flex;
+			flex-wrap: wrap; /* 允許換行 */
+			gap: 10px;
+			margin-top: 10px;
+		}
+
+        .quiz-option {
+            background: white;
+            border: 3px solid #4ECDC4;
+            border-radius: 12px;
+            padding: 15px 20px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .quiz-option:hover {
+            transform: translateX(10px);
+            background: #E6F9F7;
+        }
+
+        .quiz-option.correct {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+            animation: bounce 0.5s ease;
+        }
+
+        .quiz-option.incorrect {
+            background: #F44336;
+            color: white;
+            border-color: #F44336;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .quiz-result {
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #FFE66D, #FFB84D);
+            border-radius: 20px;
+            margin-top: 20px;
+        }
+
+        .quiz-result h2 {
+            font-size: 2.5em;
+            color: #FF6B9D;
+            margin-bottom: 20px;
+        }
+
+        .quiz-result p {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .quiz-restart {
+            background: #FF6B9D;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-restart:hover {
+            background: #FF4D7D;
+            transform: scale(1.1);
+        }
+
+        /* Test Paper Styles */
+        .test-paper {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .test-header {
+            text-align: center;
+            border-bottom: 3px solid #FFB84D;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .test-header h2 {
+            font-size: 2em;
+            color: #FF6B9D;
+            margin-bottom: 10px;
+        }
+
+        .test-section {
+            margin-bottom: 40px;
+        }
+
+        .test-section h3 {
+            background: linear-gradient(135deg, #FFB84D, #FF6B9D);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+
+        .test-question {
+            background: #FFF9E6;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 5px solid #4ECDC4;
+        }
+
+        .test-input {
+            border: 2px solid #4ECDC4;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 1em;
+            margin: 0 5px;
+            min-width: 150px;
+        }
+
+        /* Radio Button Styles */
+        .test-question label {
+            display: block;
+            padding: 12px 15px;
+            margin: 8px 0;
+            background: white;
+            border: 3px solid #4ECDC4;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.05em;
+            font-weight: 500;
+        }
+
+        .test-question label:hover {
+            background: #E6F9F7;
+            transform: translateX(8px);
+            box-shadow: 0 4px 12px rgba(78, 205, 196, 0.3);
+        }
+        
+        /* 確保選中的選項樣式也適用於即時反饋 */
+        .test-question input[type="radio"]:checked + .test-question label:not(.correct):not(.wrong) {
+             background: #ffe082; /* Soft yellow for simple selection */
+             border-color: #FFB84D;
+        }
+
+        .test-question input[type="radio"] {
+            margin-right: 12px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #FF6B9D;
+        }
+
+        /* 原始的:has 樣式保留作為選中視覺效果（如果瀏覽器支持） */
+        .test-question label:has(input[type="radio"]:checked):not(.correct):not(.wrong) {
+            background: linear-gradient(135deg, #FFE66D, #FFB84D);
+            border-color: #FF6B9D;
+            font-weight: 600;
+            transform: translateX(8px) scale(1.02);
+            box-shadow: 0 6px 16px rgba(255, 107, 157, 0.4);
+        }
+
+        /* Instant Feedback Styles */
+        .test-question label.correct {
+            background: #27ae60 !important;
+            color: white !important;
+            border-color: #27ae60 !important;
+            animation: bounce 0.5s ease;
+            pointer-events: none; /* 確保正確選項被鎖定 */
+        }
+
+        .test-question label.wrong {
+            background: #e74c3c !important;
+            color: white !important;
+            border-color: #e74c3c !important;
+            animation: shake 0.5s ease;
+            pointer-events: none; /* 確保錯誤選項被鎖定 */
+        }
+
+        .test-question label.disabled {
+            pointer-events: none;
+            opacity: 0.7; /* 略微變灰，表示已回答 */
+        }
+
+        /* 確保當 label.disabled 時，hover 效果消失 */
+        .test-question label.disabled:hover {
+             transform: translateX(0);
+             box-shadow: none;
+        }
+
+        .test-stats {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stat-item {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .stat-item h4 {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .stat-item p {
+            font-size: 1.5em;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .stat-item.correct-stat p {
+            color: #27ae60;
+        }
+
+        .stat-item.wrong-stat p {
+            color: #e74c3c;
+        }
+
+        .stat-item.total-stat p {
+            color: #FF6B9D;
+        }
+
+        /* Price Quiz Styles */
+        .price-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            padding: 20px;
+        }
+
+        .price-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            border: 3px solid #FFB84D;
+            text-align: center;
+        }
+
+        .price-emoji {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+
+        .price-tag {
+            background: linear-gradient(135deg, #4ECDC4, #44A08D);
+            color: white;
+            font-size: 2em;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .price-question {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .price-answer {
+            background: #FFF9E6;
+            border: 2px solid #FFB84D;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 1.1em;
+            color: #FF6B9D;
+            font-weight: 600;
+        }
+
+        /* Celebration Animation */
+        .celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5em;
+            animation: celebrate 1s ease infinite;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        @keyframes celebrate {
+            0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+            50% { transform: translate(-50%, -50%) scale(1.2) rotate(180deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .nav-tab {
+                min-width: 150px;
+                padding: 12px 15px;
+                font-size: 0.9em;
+            }
+
+            .flashcard-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+
+            .flashcard {
+                height: 200px;
+            }
+
+            .test-paper {
+                padding: 20px;
+            }
+        }
+
+        /* Kuse Branding */
+        .kuse-branding {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+
+        .kuse-branding:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+            color: #FF6B9D;
+        }
+
+        .kuse-branding svg {
+            height: 1.2em;
+            width: auto;
+        }
+		/* 確保這些樣式存在於您的 <style> 區塊中 */
+        .quiz-options {
+            display: flex;
+            flex-wrap: wrap; /* 允許換行 */
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .quiz-option, .price-quiz-option { /* 確保價格詢問也可以使用這個樣式 */
+            flex: 1 1 45%; /* 讓選項佔用約 45% 寬度，每行約兩個 */
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+            text-align: center;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .quiz-option:hover, .price-quiz-option:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 正確和錯誤的顏色反饋 */
+        .quiz-option.correct, .price-quiz-option.correct {
+            background-color: #4caf50 !important; /* 綠色 */
+            color: white;
+        }
+
+        .quiz-option.incorrect, .price-quiz-option.incorrect {
+            background-color: #f44336 !important; /* 紅色 */
+            color: white;
+        }
+
+        /* 價格詢問區塊的選項容器，使用 flex 佈局 */
+        #price .options-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+		
+		
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.container{width:100%}@media (min-width: 640px){.container{max-width:640px}}@media (min-width: 768px){.container{max-width:768px}}@media (min-width: 1024px){.container{max-width:1024px}}@media (min-width: 1280px){.container{max-width:1280px}}@media (min-width: 1536px){.container{max-width:1536px}}</style><style id="kgp-selected-style">
+  [data-kgp-selected]::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    width: 100%;
+    height: 100%;
+    box-sizing: content-box;
+    padding: 4px;
+    border-radius: 4px;
+    outline: 3px solid #FF6B35 !important;
+    box-shadow: 0 0 0 1px rgba(255, 107, 53, 0.3), 0 0 10px rgba(255, 107, 53, 0.4) !important;
+    z-index: 10000;
+    pointer-events: none;
+  }
+
+  [data-kgp-selected] {
+    position: relative;
+    outline: none;
+    cursor: default;
+  }
+
+  img[data-kgp-selected],
+  img[data-kgp-hover-selected],
+  [data-kgp-hover-selected],
+  [item-kgp-click-selected],
+  [item-kgp-selected] {
+    border: 3px solid #FF6B35 !important;
+    box-shadow: 0 0 0 1px rgba(255, 107, 53, 0.3), 0 0 15px rgba(255, 107, 53, 0.5) !important;
+    border-radius: 4px;
+  }
+
+  [data-kgp-hover-selected]::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    width: 100%;
+    height: 100%;
+    box-sizing: content-box;
+    padding: 2px;
+    border-radius: 4px;
+    outline: 2px solid #FFA366 !important;
+    box-shadow: 0 0 0 1px rgba(255, 163, 102, 0.3), 0 0 8px rgba(255, 163, 102, 0.4) !important;
+    z-index: 9999;
+    pointer-events: none;
+  }
+
+  [data-kgp-hover-selected] {
+    position: relative;
+    outline: none;
+  }
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 英語學習互動系統 🎓</h1>
+            <p style="font-size: 1.2em; color: #666;">Lesson 3 &amp; 4 - 吃健康食物與三餐</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab" onclick="showSection('flashcards')">🎴 語音閃卡</button>
+            <button class="nav-tab" onclick="showSection('quiz')">📝 互動測驗</button>
+            <button class="nav-tab active" onclick="showSection('test')" style="">📄 過往試卷</button>
+            <button class="nav-tab" onclick="showSection('price')">💰 價格詢問</button>
+        </div>
+
+        <div id="flashcards" class="content-section">
+            <div class="flashcard-grid" id="flashcardGrid"></div>
+        </div>
+
+        <div id="quiz" class="content-section">
+            <div class="quiz-container">
+                <div class="quiz-header">
+                    <h2 style="color: #FF6B9D; font-size: 2em; margin-bottom: 20px;">📝 互動式測驗</h2>
+                    <div class="quiz-score" id="quizScore">得分：0 / 8</div>
+                    <div class="quiz-progress">
+                        <div class="quiz-progress-bar" id="quizProgress" style="width: 0%">0%</div>
+                    </div>
+                </div>
+                <div id="quizQuestions"></div>
+                <div id="quizResult" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div id="test" class="content-section active">
+            <div class="test-paper">
+                <div class="test-header">
+                    <h2>📄 英語練習試卷</h2>
+                    <p style="color: #666;">姓名：__________ 日期：__________</p>
+                </div>
+
+                <div class="test-stats" id="testStats">
+                    <div class="stat-item correct-stat">
+                        <h4>答對題數</h4>
+                        <p id="testCorrect">0</p>
+                    </div>
+                    <div class="stat-item wrong-stat">
+                        <h4>答錯題數</h4>
+                        <p id="testWrong">0</p>
+                    </div>
+                    <div class="stat-item total-stat">
+                        <h4>完成進度</h4>
+                        <p id="testProgress">0 / 14</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4>正確率</h4>
+                        <p id="testAccuracy" style="color: #4ECDC4;">0%</p>
+                    </div>
+                </div>
+
+                <div class="test-section">
+                    <h3>Part 1: Choose the correct answer (5 points each)</h3>
+                    <div class="test-question">
+                        1. _____ eggs do you need?<br>
+                        <label><input type="radio" name="q1" value="A"> A) How many</label><br>
+                        <label><input type="radio" name="q1" value="B"> B) How much</label><br>
+                        <label><input type="radio" name="q1" value="C"> C) What</label><br>
+                        <label><input type="radio" name="q1" value="D"> D) Where</label>
+                    </div>
+                    <div class="test-question">
+                        2. _____ is the hot dog?<br>
+                        <label><input type="radio" name="q2" value="A"> A) How many</label><br>
+                        <label><input type="radio" name="q2" value="B"> B) How much</label><br>
+                        <label><input type="radio" name="q2" value="C"> C) What</label><br>
+                        <label><input type="radio" name="q2" value="D"> D) How old</label>
+                    </div>
+                    <div class="test-question">
+                        3. I _____ ten eggs.<br>
+                        <label><input type="radio" name="q3" value="A"> A) need</label><br>
+                        <label><input type="radio" name="q3" value="B"> B) needs</label><br>
+                        <label><input type="radio" name="q3" value="C"> C) needing</label><br>
+                        <label><input type="radio" name="q3" value="D"> D) needed</label>
+                    </div>
+                    <div class="test-question">
+                        4. What _____ you like for breakfast?<br>
+                        <label><input type="radio" name="q4" value="A"> A) would</label><br>
+                        <label><input type="radio" name="q4" value="B"> B) will</label><br>
+                        <label><input type="radio" name="q4" value="C"> C) should</label><br>
+                        <label><input type="radio" name="q4" value="D"> D) can</label>
+                    </div>
+                    <div class="test-question">
+                        5. _____ you like some rice?<br>
+                        <label><input type="radio" name="q5" value="A"> A) Would</label><br>
+                        <label><input type="radio" name="q5" value="B"> B) Will</label><br>
+                        <label><input type="radio" name="q5" value="C"> C) Are</label><br>
+                        <label><input type="radio" name="q5" value="D"> D) Do</label>
+                    </div>
+                </div>
+
+                <div class="test-section">
+                    <h3>Part 2: Choose the correct answer (5 points each)</h3>
+                    <div class="test-question">
+                        6. How much _____ the cookies?<br>
+                        <label><input type="radio" name="q6" value="A"> A) is</label><br>
+                        <label><input type="radio" name="q6" value="B"> B) are</label><br>
+                        <label><input type="radio" name="q6" value="C"> C) do</label><br>
+                        <label><input type="radio" name="q6" value="D"> D) does</label>
+                    </div>
+                    <div class="test-question">
+                        7. How many cookies _____ they need?<br>
+                        <label><input type="radio" name="q7" value="A"> A) do</label><br>
+                        <label><input type="radio" name="q7" value="B"> B) does</label><br>
+                        <label><input type="radio" name="q7" value="C"> C) is</label><br>
+                        <label><input type="radio" name="q7" value="D"> D) are</label>
+                    </div>
+                    <div class="test-question">
+                        8. How many cookies do you need? - I need _____ cookies.<br>
+                        <label><input type="radio" name="q8" value="A"> A) ten</label><br>
+                        <label><input type="radio" name="q8" value="B"> B) ten dollar</label><br>
+                        <label><input type="radio" name="q8" value="C"> C) ten dollars</label><br>
+                        <label><input type="radio" name="q8" value="D"> D) ten dollars.</label>
+                    </div>
+                    <div class="test-question">
+                        9. How much is the sandwich? - It's _____ .<br>
+                        <label><input type="radio" name="q9" value="A"> A) ten sandwiches</label><br>
+                        <label><input type="radio" name="q9" value="B"> B) ten dollars</label><br>
+                        <label><input type="radio" name="q9" value="C"> C) ten egg</label><br>
+                        <label><input type="radio" name="q9" value="D"> D) ten rice</label>
+                    </div>
+                    <div class="test-question">
+                        10. Would you like some soup? - Yes, _____ .<br>
+                        <label><input type="radio" name="q10" value="A"> A) I would</label><br>
+                        <label><input type="radio" name="q10" value="B"> B) I will</label><br>
+                        <label><input type="radio" name="q10" value="C"> C) I like</label><br>
+                        <label><input type="radio" name="q10" value="D"> D) I do</label>
+                    </div>
+                </div>
+
+                <div class="test-section">
+                    <h3>Part 3: Rearrangement (5 points each)</h3>
+                    <div class="test-question">
+                        11. Rearrange: need / I / eggs / ten / .<br>
+                        <label><input type="radio" name="q11" value="A"> A) I need ten eggs.</label><br>
+                        <label><input type="radio" name="q11" value="B"> B) I ten eggs need.</label><br>
+                        <label><input type="radio" name="q11" value="C"> C) Ten eggs I need.</label><br>
+                        <label><input type="radio" name="q11" value="D"> D) Need I ten eggs.</label>
+                    </div>
+                    <div class="test-question">
+                        12. Rearrange: much / How / the / is / hot dog / ?<br>
+                        <label><input type="radio" name="q12" value="A"> A) How much is the hot dog?</label><br>
+                        <label><input type="radio" name="q12" value="B"> B) How is much the hot dog?</label><br>
+                        <label><input type="radio" name="q12" value="C"> C) The hot dog how much is?</label><br>
+                        <label><input type="radio" name="q12" value="D"> D) Is how much the hot dog?</label>
+                    </div>
+                    <div class="test-question">
+                        13. Rearrange: hamburger / the / much / How / is / ?<br>
+                        <label><input type="radio" name="q13" value="A"> A) How much is the hamburger?</label><br>
+                        <label><input type="radio" name="q13" value="B"> B) The hamburger how much is?</label><br>
+                        <label><input type="radio" name="q13" value="C"> C) How is the hamburger much?</label><br>
+                        <label><input type="radio" name="q13" value="D"> D) Much how is the hamburger?</label>
+                    </div>
+                    <div class="test-question">
+                        14. Rearrange: like / Would / some / you / soup / ?<br>
+                        <label><input type="radio" name="q14" value="A"> A) Would you like some soup?</label><br>
+                        <label><input type="radio" name="q14" value="B"> B) You would like some soup?</label><br>
+                        <label><input type="radio" name="q14" value="C"> C) Some soup would you like?</label><br>
+                        <label><input type="radio" name="q14" value="D"> D) Like you would some soup?</label>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button onclick="checkTestAnswers()" class="quiz-restart">提交答案並檢查</button>
+                    <button onclick="resetTestPaper()" class="quiz-restart" style="background: #4ECDC4;">重置試卷</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="price" class="content-section">
+            <div class="test-paper" id="priceTestPaper">
+                <div class="test-header">
+                    <h2>💰 價格與數量詢問測驗</h2>
+                    <p style="color: #666;">即時反饋練習</p>
+                </div>
+
+                <div class="test-stats" id="priceTestStats">
+                    <div class="stat-item correct-stat">
+                        <h4>答對題數</h4>
+                        <p id="priceCorrect">0</p>
+                    </div>
+                    <div class="stat-item wrong-stat">
+                        <h4>答錯題數</h4>
+                        <p id="priceWrong">0</p>
+                    </div>
+                    <div class="stat-item total-stat">
+                        <h4>完成進度</h4>
+                        <p id="priceProgress">0 / 28</p>
+                    </div>
+                    <div class="stat-item">
+                        <h4>正確率</h4>
+                        <p id="priceAccuracy" style="color: #4ECDC4;">0%</p>
+                    </div>
+                </div>
+
+                <div id="priceTestQuestions">
+                    <div class="test-section">
+                        <h3>Part 1: How many vs How much</h3>
+                        <div class="test-question" data-question-id="p1">
+                            <p class="question-text">1. _____ eggs do you need?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="How many" data-correct="true">A) How many</div>
+                                <div class="quiz-option" data-answer="How much" data-correct="false">B) How much</div>
+                                <div class="quiz-option" data-answer="How old" data-correct="false">C) How old</div>
+                                <div class="quiz-option" data-answer="How long" data-correct="false">D) How long</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p2">
+                            <p class="question-text">2. _____ rice do you need?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="How many" data-correct="false">A) How many</div>
+                                <div class="quiz-option" data-answer="How much" data-correct="true">B) How much</div>
+                                <div class="quiz-option" data-answer="How far" data-correct="false">C) How far</div>
+                                <div class="quiz-option" data-answer="How often" data-correct="false">D) How often</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p3">
+                            <p class="question-text">3. _____ cookies do they need?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="How many" data-correct="true">A) How many</div>
+                                <div class="quiz-option" data-answer="How much" data-correct="false">B) How much</div>
+                                <div class="quiz-option" data-answer="What" data-correct="false">C) What</div>
+                                <div class="quiz-option" data-answer="Where" data-correct="false">D) Where</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p4">
+                            <p class="question-text">4. _____ milk do we need?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="How many" data-correct="false">A) How many</div>
+                                <div class="quiz-option" data-answer="How much" data-correct="true">B) How much</div>
+                                <div class="quiz-option" data-answer="How tall" data-correct="false">C) How tall</div>
+                                <div class="quiz-option" data-answer="How big" data-correct="false">D) How big</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p5">
+                            <p class="question-text">5. _____ oranges does she need?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="How many" data-correct="true">A) How many</div>
+                                <div class="quiz-option" data-answer="How much" data-correct="false">B) How much</div>
+                                <div class="quiz-option" data-answer="Which" data-correct="false">C) Which</div>
+                                <div class="quiz-option" data-answer="Whose" data-correct="false">D) Whose</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p6">
+                            <p class="question-text">6. _____ soup would you like?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="How many" data-correct="false">A) How many</div>
+                                <div class="quiz-option" data-answer="How much" data-correct="true">B) How much</div>
+                                <div class="quiz-option" data-answer="Who" data-correct="false">C) Who</div>
+                                <div class="quiz-option" data-answer="What" data-correct="false">D) What</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p7">
+                            <p class="question-text">7. _____ bananas does he need?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="How many" data-correct="true">A) How many</div>
+                                <div class="quiz-option" data-answer="How much" data-correct="false">B) How much</div>
+                                <div class="quiz-option" data-answer="How old" data-correct="false">C) How old</div>
+                                <div class="quiz-option" data-answer="How long" data-correct="false">D) How long</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p8">
+                            <p class="question-text">8. _____ money do you have?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="How many" data-correct="false">A) How many</div>
+                                <div class="quiz-option" data-answer="How much" data-correct="true">B) How much</div>
+                                <div class="quiz-option" data-answer="How tall" data-correct="false">C) How tall</div>
+                                <div class="quiz-option" data-answer="How long" data-correct="false">D) How long</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="test-section">
+                        <h3>Part 2: Do vs Does</h3>
+                        <div class="test-question" data-question-id="p9">
+                            <p class="question-text">9. How many eggs _____ you need?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="do" data-correct="true">A) do</div>
+                                <div class="quiz-option" data-answer="does" data-correct="false">B) does</div>
+                                <div class="quiz-option" data-answer="is" data-correct="false">C) is</div>
+                                <div class="quiz-option" data-answer="are" data-correct="false">D) are</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p10">
+                            <p class="question-text">10. How many oranges _____ he need?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="do" data-correct="false">A) do</div>
+                                <div class="quiz-option" data-answer="does" data-correct="true">B) does</div>
+                                <div class="quiz-option" data-answer="is" data-correct="false">C) is</div>
+                                <div class="quiz-option" data-answer="are" data-correct="false">D) are</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p11">
+                            <p class="question-text">11. How many strawberries _____ they need?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="do" data-correct="true">A) do</div>
+                                <div class="quiz-option" data-answer="does" data-correct="false">B) does</div>
+                                <div class="quiz-option" data-answer="is" data-correct="false">C) is</div>
+                                <div class="quiz-option" data-answer="are" data-correct="false">D) are</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p12">
+                            <p class="question-text">12. How many watermelons _____ she need?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="do" data-correct="false">A) do</div>
+                                <div class="quiz-option" data-answer="does" data-correct="true">B) does</div>
+                                <div class="quiz-option" data-answer="is" data-correct="false">C) is</div>
+                                <div class="quiz-option" data-answer="are" data-correct="false">D) are</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p13">
+                            <p class="question-text">13. How many cookies _____ we need?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="do" data-correct="true">A) do</div>
+                                <div class="quiz-option" data-answer="does" data-correct="false">B) does</div>
+                                <div class="quiz-option" data-answer="is" data-correct="false">C) is</div>
+                                <div class="quiz-option" data-answer="are" data-correct="false">D) are</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p14">
+                            <p class="question-text">14. How many hamburgers _____ Tom need?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="do" data-correct="false">A) do</div>
+                                <div class="quiz-option" data-answer="does" data-correct="true">B) does</div>
+                                <div class="quiz-option" data-answer="is" data-correct="false">C) is</div>
+                                <div class="quiz-option" data-answer="are" data-correct="false">D) are</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="test-section">
+                        <h3>Part 3: Is vs Are (Price Questions)</h3>
+                        <div class="test-question" data-question-id="p15">
+                            <p class="question-text">15. How much _____ the hot dog?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="is" data-correct="true">A) is</div>
+                                <div class="quiz-option" data-answer="are" data-correct="false">B) are</div>
+                                <div class="quiz-option" data-answer="do" data-correct="false">C) do</div>
+                                <div class="quiz-option" data-answer="does" data-correct="false">D) does</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p16">
+                            <p class="question-text">16. How much _____ the cookies?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="is" data-correct="false">A) is</div>
+                                <div class="quiz-option" data-answer="are" data-correct="true">B) are</div>
+                                <div class="quiz-option" data-answer="do" data-correct="false">C) do</div>
+                                <div class="quiz-option" data-answer="does" data-correct="false">D) does</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p17">
+                            <p class="question-text">17. How much _____ the sandwich?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="is" data-correct="true">A) is</div>
+                                <div class="quiz-option" data-answer="are" data-correct="false">B) are</div>
+                                <div class="quiz-option" data-answer="do" data-correct="false">C) do</div>
+                                <div class="quiz-option" data-answer="does" data-correct="false">D) does</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p18">
+                            <p class="question-text">18. How much _____ the rice?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="is" data-correct="true">A) is</div>
+                                <div class="quiz-option" data-answer="are" data-correct="false">B) are</div>
+                                <div class="quiz-option" data-answer="do" data-correct="false">C) do</div>
+                                <div class="quiz-option" data-answer="does" data-correct="false">D) does</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p19">
+                            <p class="question-text">19. How much _____ the milk?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="is" data-correct="true">A) is</div>
+                                <div class="quiz-option" data-answer="are" data-correct="false">B) are</div>
+                                <div class="quiz-option" data-answer="do" data-correct="false">C) do</div>
+                                <div class="quiz-option" data-answer="does" data-correct="false">D) does</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p20">
+                            <p class="question-text">20. How much _____ the oranges?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="is" data-correct="false">A) is</div>
+                                <div class="quiz-option" data-answer="are" data-correct="true">B) are</div>
+                                <div class="quiz-option" data-answer="do" data-correct="false">C) do</div>
+                                <div class="quiz-option" data-answer="does" data-correct="false">D) does</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="test-section">
+                        <h3>Part 4: Answer Selection (Choose the correct answer)</h3>
+                        <div class="test-question" data-question-id="p21">
+                            <p class="question-text">21. How many eggs do you need?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="I need ten eggs." data-correct="true">A) I need ten eggs.</div>
+                                <div class="quiz-option" data-answer="It's ten dollars." data-correct="false">B) It's ten dollars.</div>
+                                <div class="quiz-option" data-answer="I needs ten eggs." data-correct="false">C) I needs ten eggs.</div>
+                                <div class="quiz-option" data-answer="They're ten eggs." data-correct="false">D) They're ten eggs.</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p22">
+                            <p class="question-text">22. How much is the hot dog?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="They're fifty-five dollars." data-correct="false">A) They're fifty-five dollars.</div>
+                                <div class="quiz-option" data-answer="It's fifty-five dollars." data-correct="true">B) It's fifty-five dollars.</div>
+                                <div class="quiz-option" data-answer="I need fifty-five." data-correct="false">C) I need fifty-five.</div>
+                                <div class="quiz-option" data-answer="It fifty-five dollars." data-correct="false">D) It fifty-five dollars.</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p23">
+                            <p class="question-text">23. How much are the cookies?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="It's thirty dollars." data-correct="false">A) It's thirty dollars.</div>
+                                <div class="quiz-option" data-answer="They're thirty dollars." data-correct="true">B) They're thirty dollars.</div>
+                                <div class="quiz-option" data-answer="I need thirty cookies." data-correct="false">C) I need thirty cookies.</div>
+                                <div class="quiz-option" data-answer="It thirty dollars." data-correct="false">D) It thirty dollars.</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p24">
+                            <p class="question-text">24. How many sandwiches do you need?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="I need five sandwiches." data-correct="true">A) I need five sandwiches.</div>
+                                <div class="quiz-option" data-answer="It's five dollars." data-correct="false">B) It's five dollars.</div>
+                                <div class="quiz-option" data-answer="They're five sandwiches." data-correct="false">C) They're five sandwiches.</div>
+                                <div class="quiz-option" data-answer="I needs five sandwiches." data-correct="false">D) I needs five sandwiches.</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p25">
+                            <p class="question-text">25. How many oranges do they need?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="They need twenty oranges." data-correct="true">A) They need twenty oranges.</div>
+                                <div class="quiz-option" data-answer="They needs twenty oranges." data-correct="false">B) They needs twenty oranges.</div>
+                                <div class="quiz-option" data-answer="It's twenty oranges." data-correct="false">C) It's twenty oranges.</div>
+                                <div class="quiz-option" data-answer="They're twenty dollars." data-correct="false">D) They're twenty dollars.</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p26">
+                            <p class="question-text">26. How much are the strawberries?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="It's sixty-five dollars." data-correct="false">A) It's sixty-five dollars.</div>
+                                <div class="quiz-option" data-answer="They're sixty-five dollars." data-correct="true">B) They're sixty-five dollars.</div>
+                                <div class="quiz-option" data-answer="I need sixty-five strawberries." data-correct="false">C) I need sixty-five strawberries.</div>
+                                <div class="quiz-option" data-answer="They sixty-five dollars." data-correct="false">D) They sixty-five dollars.</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p27">
+                            <p class="question-text">27. How many watermelons does he need?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="He need three watermelons." data-correct="false">A) He need three watermelons.</div>
+                                <div class="quiz-option" data-answer="He needs three watermelons." data-correct="true">B) He needs three watermelons.</div>
+                                <div class="quiz-option" data-answer="They're three watermelons." data-correct="false">C) They're three watermelons.</div>
+                                <div class="quiz-option" data-answer="It's three dollars." data-correct="false">D) It's three dollars.</div>
+                            </div>
+                        </div>
+                        <div class="test-question" data-question-id="p28">
+                            <p class="question-text">28. How much is the hamburger?</p>
+                            <div class="options-container">
+                                <div class="quiz-option" data-answer="They're eighty dollars." data-correct="false">A) They're eighty dollars.</div>
+                                <div class="quiz-option" data-answer="I need eighty hamburgers." data-correct="false">B) I need eighty hamburgers.</div>
+                                <div class="quiz-option" data-answer="It's eighty dollars." data-correct="true">C) It's eighty dollars.</div>
+                                <div class="quiz-option" data-answer="It eighty dollars." data-correct="false">D) It eighty dollars.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <button onclick="resetPriceTest()" class="quiz-restart">重置測驗</button>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="kuse-branding">
+        <span>Powered by KUSE 🌟</span>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-6 w-6"><path fill-rule="evenodd" d="M11.54 22.351a.765.765 0 0 1-1.08 0L2.249 14.232c-3.136-3.135-1.464-7.636 1.832-7.915.658-.056 1.32.181 1.832.695l1.654 1.655.19.19.19-.19 1.655-1.655c3.296-3.296 7.797-1.624 7.915 1.832.056.658-.181 1.32-.695 1.832l-8.212 8.212Z" clip-rule="evenodd"></path></svg>
+    </div>
+
+    <script>
+        // --- 資料設定 (Data Configuration) ---
+        const flashcardsData = [
+            { word: "healthy", translation: "健康的", emoji: "🍎" },
+            { word: "soup", translation: "湯", emoji: "🥣" },
+            { word: "breakfast", translation: "早餐", emoji: "🍳" },
+            { word: "lunch", translation: "午餐", emoji: "🥪" },
+            { word: "dinner", translation: "晚餐", emoji: "🍽️" },
+            { word: "need", translation: "需要", emoji: "🛍️" },
+            { word: "rice", translation: "米飯", emoji: "🍚" },
+            { word: "eggs", translation: "蛋", emoji: "🥚" }
+        ];
+
+        // Quiz data (for 互動測驗)
+        let currentQuizIndex = 0;
+        let quizScore = 0;
+        const quizQuestions = [
+            { question: "How many ____ do you need?", options: ["apples", "rice", "soup", "eggs"], answer: "eggs" },
+            { question: "What would you like for ____?", options: ["need", "healthy", "soup", "lunch"], answer: "lunch" },
+            { question: "I need to eat ____ food.", options: ["delicious", "healthy", "apple", "dinner"], answer: "healthy" },
+            { question: "Would you like some ____?", options: ["many", "much", "soup", "how"], answer: "soup" },
+            { question: "We need ten ____.", options: ["apple", "apples", "a apple", "apple's"], answer: "apples" },
+            { question: "How ____ is the milk?", options: ["many", "much", "tall", "big"], answer: "much" },
+            { question: "I ____ two oranges.", options: ["needs", "needing", "need", "needed"], answer: "need" },
+            { question: "What would you ____ for dinner?", options: ["need", "like", "eat", "do"], answer: "like" }
+        ];
+
+        // Test Paper data (for 過往試卷)
+        let testStats = { total: 14, answered: 0, correct: 0, wrong: 0 };
+        const testQuestionsData = [
+            { id: 'q1', question: '_____ eggs do you need?', options: ['How many', 'How much', 'What', 'Where'], answer: 'How many' },
+            { id: 'q2', question: '_____ is the hot dog?', options: ['How many', 'How much', 'What', 'How old'], answer: 'How much' },
+            { id: 'q3', question: 'I _____ ten eggs.', options: ['need', 'needs', 'needing', 'needed'], answer: 'need' },
+            { id: 'q4', question: 'What _____ you like for breakfast?', options: ['would', 'will', 'should', 'can'], answer: 'would' },
+            { id: 'q5', question: '_____ you like some rice?', options: ['Would', 'Will', 'Are', 'Do'], answer: 'Would' },
+            { id: 'q6', question: 'How much _____ the cookies?', options: ['is', 'are', 'do', 'does'], answer: 'are' },
+            { id: 'q7', question: 'How many cookies _____ they need?', options: ['do', 'does', 'is', 'are'], answer: 'do' },
+            { id: 'q8', question: 'How many cookies do you need? - I need _____ cookies.', options: ['ten', 'ten dollar', 'ten dollars', 'ten dollars.'], answer: 'ten' },
+            { id: 'q9', question: 'How much is the sandwich? - It\'s _____ .', options: ['ten sandwiches', 'ten dollars', 'ten egg', 'ten rice'], answer: 'ten dollars' },
+            { id: 'q10', question: 'Would you like some soup? - Yes, _____ .', options: ['I would', 'I will', 'I like', 'I do'], answer: 'I would' },
+            { id: 'q11', question: 'Rearrange: need / I / eggs / ten / .', options: ['I need ten eggs.', 'I ten eggs need.', 'Ten eggs I need.', 'Need I ten eggs.'], answer: 'I need ten eggs.' },
+            { id: 'q12', question: 'Rearrange: much / How / the / is / hot dog / ?', options: ['How much is the hot dog?', 'How is much the hot dog?', 'The hot dog how much is?', 'Is how much the hot dog?'], answer: 'How much is the hot dog?' },
+            { id: 'q13', question: 'Rearrange: hamburger / the / much / How / is / ?', options: ['How much is the hamburger?', 'The hamburger how much is?', 'How is the hamburger much?', 'Much how is the hamburger?'], answer: 'How much is the hamburger?' },
+            { id: 'q14', question: 'Rearrange: like / Would / some / you / soup / ?', options: ['Would you like some soup?', 'You would like some soup?', 'Some soup would you like?', 'Like you would some soup?'], answer: 'Would you like some soup?' }
+        ];
+
+        // Price Test data (for 價格詢問)
+        let priceStats = { total: 28, answered: 0, correct: 0, wrong: 0 };
+        const priceTestQuestionsData = [
+            // Part 1: How many vs How much
+            { id: 'p1', question: '1. _____ eggs do you need?', options: ['How many', 'How much', 'How old', 'How long'], answer: 'How many' },
+            { id: 'p2', question: '2. _____ rice do you need?', options: ['How many', 'How much', 'How far', 'How often'], answer: 'How much' },
+            { id: 'p3', question: '3. _____ cookies do they need?', options: ['How many', 'How much', 'What', 'Where'], answer: 'How many' },
+            { id: 'p4', question: '4. _____ milk do we need?', options: ['How many', 'How much', 'How tall', 'How big'], answer: 'How much' },
+            { id: 'p5', question: '5. _____ oranges does she need?', options: ['How many', 'How much', 'Which', 'Whose'], answer: 'How many' },
+            { id: 'p6', question: '6. _____ soup would you like?', options: ['How many', 'How much', 'Who', 'What'], answer: 'How much' },
+            { id: 'p7', question: '7. _____ bananas does he need?', options: ['How many', 'How much', 'How old', 'How long'], answer: 'How many' },
+            { id: 'p8', question: '8. _____ money do you have?', options: ['How many', 'How much', 'How tall', 'How long'], answer: 'How much' },
+
+            // Part 2: Do vs Does
+            { id: 'p9', question: '9. How many eggs _____ you need?', options: ['do', 'does', 'is', 'are'], answer: 'do' },
+            { id: 'p10', question: '10. How many oranges _____ he need?', options: ['do', 'does', 'is', 'are'], answer: 'does' },
+            { id: 'p11', question: '11. How many strawberries _____ they need?', options: ['do', 'does', 'is', 'are'], answer: 'do' },
+            { id: 'p12', question: '12. How many watermelons _____ she need?', options: ['do', 'does', 'is', 'are'], answer: 'does' },
+            { id: 'p13', question: '13. How many cookies _____ we need?', options: ['do', 'does', 'is', 'are'], answer: 'do' },
+            { id: 'p14', question: '14. How many hamburgers _____ Tom need?', options: ['do', 'does', 'is', 'are'], answer: 'does' },
+
+            // Part 3: Is vs Are
+            { id: 'p15', question: '15. How much _____ the hot dog?', options: ['is', 'are', 'do', 'does'], answer: 'is' },
+            { id: 'p16', question: '16. How much _____ the cookies?', options: ['is', 'are', 'do', 'does'], answer: 'are' },
+            { id: 'p17', question: '17. How much _____ the sandwich?', options: ['is', 'are', 'do', 'does'], answer: 'is' },
+            { id: 'p18', question: '18. How much _____ the rice?', options: ['is', 'are', 'do', 'does'], answer: 'is' },
+            { id: 'p19', question: '19. How much _____ the milk?', options: ['is', 'are', 'do', 'does'], answer: 'is' },
+            { id: 'p20', question: '20. How much _____ the oranges?', options: ['is', 'are', 'do', 'does'], answer: 'are' },
+
+            // Part 4: Answer Selection
+            { id: 'p21', question: '21. How many eggs do you need?', options: ['I need ten eggs.', 'It\'s ten dollars.', 'I needs ten eggs.', 'They\'re ten eggs.'], answer: 'I need ten eggs.' },
+            { id: 'p22', question: '22. How much is the hot dog?', options: ['They\'re fifty-five dollars.', 'It\'s fifty-five dollars.', 'I need fifty-five.', 'It fifty-five dollars.'], answer: 'It\'s fifty-five dollars.' },
+            { id: 'p23', question: '23. How much are the cookies?', options: ['It\'s thirty dollars.', 'They\'re thirty dollars.', 'I need thirty cookies.', 'It thirty dollars.'], answer: 'They\'re thirty dollars.' },
+            { id: 'p24', question: '24. How many sandwiches do you need?', options: ['I need five sandwiches.', 'It\'s five dollars.', 'They\'re five sandwiches.', 'I needs five sandwiches.'], answer: 'I need five sandwiches.' },
+            { id: 'p25', question: '25. How many oranges do they need?', options: ['They need twenty oranges.', 'They needs twenty oranges.', 'It\'s twenty oranges.', 'They\'re twenty dollars.'], answer: 'They need twenty oranges.' },
+            { id: 'p26', question: '26. How much are the strawberries?', options: ['It\'s sixty-five dollars.', 'They\'re sixty-five dollars.', 'I need sixty-five strawberries.', 'They sixty-five dollars.'], answer: 'They\'re sixty-five dollars.' },
+            { id: 'p27', question: '27. How many watermelons does he need?', options: ['He need three watermelons.', 'He needs three watermelons.', 'They\'re three watermelons.', 'It\'s three dollars.'], answer: 'He needs three watermelons.' },
+            { id: 'p28', question: '28. How much is the hamburger?', options: ['They\'re eighty dollars.', 'I need eighty hamburgers.', 'It\'s eighty dollars.', 'It eighty dollars.'], answer: 'It\'s eighty dollars.' }
+        ];
+
+        // --- 輔助函數 (Utility Functions) ---
+
+        // Fisher-Yates Shuffle Algorithm
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Randomize options and track correct answer
+        function randomizeQuestion(question) {
+            const shuffledOptions = shuffleArray(question.options);
+            const correctIndex = shuffledOptions.indexOf(question.answer);
+            const labels = ['A', 'B', 'C', 'D'];
+            return {
+                ...question,
+                shuffledOptions,
+                correctLabel: labels[correctIndex]
+            };
+        }
+
+        // 顯示慶祝動畫
+        function showCelebration(symbol) {
+            const celebration = document.createElement('div');
+            celebration.className = 'celebration';
+            celebration.textContent = symbol;
+            document.body.appendChild(celebration);
+            setTimeout(() => celebration.remove(), 1000);
+        }
+
+        // --- 導覽列與區塊切換 (Navigation) ---
+        function showSection(sectionId) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.getAttribute('onclick').includes(`'${sectionId}'`)) {
+                    tab.classList.add('active');
+                }
+            });
+            // 確保每次切換到試卷類分頁時，都能重新計算統計數據
+            if (sectionId === 'test') {
+                updateTestStats();
+            } else if (sectionId === 'price') {
+                updatePriceStats();
+            }
+        }
+
+        // --- 語音閃卡功能 (Flashcards) ---
+        function initFlashcards() {
+            const grid = document.getElementById('flashcardGrid');
+            const shuffledData = shuffleArray(flashcardsData);
+            shuffledData.forEach(data => {
+                const card = document.createElement('div');
+                card.className = 'flashcard';
+                card.innerHTML = `
+                    <div class="flashcard-inner" onclick="this.closest('.flashcard').classList.toggle('flipped')">
+                        <div class="flashcard-front">
+                            <span class="flashcard-emoji">${data.emoji}</span>
+                            <span class="flashcard-word">${data.word}</span>
+                        </div>
+                        <div class="flashcard-back">
+                            <span class="flashcard-translation">${data.translation}</span>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // --- 互動測驗功能 (Quiz - Single Question Mode) ---
+        function initQuiz() {
+            currentQuizIndex = 0;
+            quizScore = 0;
+            document.getElementById('quizResult').style.display = 'none';
+            document.getElementById('quizScore').textContent = `得分：0 / ${quizQuestions.length}`;
+            document.getElementById('quizProgress').style.width = '0%';
+            document.getElementById('quizProgress').textContent = '0%';
+            displayQuizQuestion();
+        }
+
+        function displayQuizQuestion() {
+            if (currentQuizIndex >= quizQuestions.length) {
+                showQuizResult();
+                return;
+            }
+            const container = document.getElementById('quizQuestions');
+            container.innerHTML = '';
+            const questionData = quizQuestions[currentQuizIndex];
+            
+            // Randomize options for the interactive quiz
+            const randomized = randomizeQuestion(questionData);
+
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'quiz-question';
+            questionDiv.innerHTML = `
+                <h3>${currentQuizIndex + 1}. ${randomized.question}</h3>
+                <div class="quiz-options">
+                    ${randomized.shuffledOptions.map((option, index) => `
+                        <div class="quiz-option" data-answer="${option}" onclick="selectQuizOption(this, '${questionData.answer.replace(/'/g, "\\'")}')">
+                            ${String.fromCharCode(65 + index)}) ${option}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.appendChild(questionDiv);
+
+            // Update progress
+            const percentage = Math.round((currentQuizIndex / quizQuestions.length) * 100);
+            document.getElementById('quizProgress').style.width = `${percentage}%`;
+            document.getElementById('quizProgress').textContent = `${percentage}%`;
+        }
+
+        function selectQuizOption(clickedOption, correctAnswer) {
+            const allOptions = clickedOption.closest('.quiz-options').querySelectorAll('.quiz-option');
+
+            // Check if already answered
+            const alreadyAnswered = Array.from(allOptions).some(
+                opt => opt.classList.contains('correct') || opt.classList.contains('incorrect')
+            );
+            if (alreadyAnswered) return;
+
+            const selectedAnswer = clickedOption.dataset.answer;
+            const isCorrect = selectedAnswer === correctAnswer;
+
+            // Instant Feedback & Scoring
+            if (isCorrect) {
+                quizScore++;
+                clickedOption.classList.add('correct');
+                clickedOption.innerHTML += ' ✓';
+                showCelebration('🎉');
+            } else {
+                clickedOption.classList.add('incorrect');
+                clickedOption.innerHTML += ' ❌';
+                showCelebration('❌');
+                // Show the correct answer
+                allOptions.forEach(opt => {
+                    if (opt.dataset.answer === correctAnswer) {
+                        opt.classList.add('correct');
+                        opt.innerHTML += ' ✓';
+                    }
+                });
+            }
+
+            // Disable all options for this question
+            allOptions.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+            });
+            document.getElementById('quizScore').textContent = `得分：${quizScore} / ${quizQuestions.length}`;
+
+            // Move to the next question after a delay
+            setTimeout(() => {
+                currentQuizIndex++;
+                displayQuizQuestion();
+            }, 1500);
+        }
+
+        function showQuizResult() {
+            const resultDiv = document.getElementById('quizResult');
+            const percentage = (quizScore / quizQuestions.length) * 100;
+            let message = ``;
+
+            if (percentage === 100) {
+                message = `太棒了！你答對所有題目！🎉`;
+            } else if (percentage >= 75) {
+                message = `很好！正確率 ${percentage.toFixed(0)}% 👍`;
+            } else {
+                message = `需要再加把勁喔！正確率 ${percentage.toFixed(0)}% 🧐`;
+            }
+
+            resultDiv.innerHTML = `
+                <div class="quiz-result">
+                    <h2>測驗結束！</h2>
+                    <p>${message}</p>
+                    <p>你的最終得分是: ${quizScore} / ${quizQuestions.length}</p>
+                    <button class="quiz-restart" onclick="initQuiz()">重新開始測驗</button>
+                </div>
+            `;
+            document.getElementById('quizQuestions').innerHTML = ''; // Clear quiz content
+            document.getElementById('quizProgress').style.width = '100%';
+            document.getElementById('quizProgress').textContent = '完成';
+            resultDiv.style.display = 'block';
+        }
+
+        // --- 過往試卷功能 (Test Paper) - 修正即時反饋邏輯 ---
+
+        // 新增：處理「過往試卷」的即時反饋與計分
+        function handleTestOptionClick(event) {
+            const radio = event.target;
+            // 確保點擊的是未禁用的 radio 按鈕
+            if (radio.type !== 'radio' || radio.disabled) return;
+
+            const questionDiv = radio.closest('.test-question');
+            const questionId = radio.name; // e.g., 'q1'
+            const selectedValue = radio.value; // e.g., 'A'
+            const clickedLabel = radio.closest('label');
+
+            // 根據 radio 的 name (q1, q2...) 找到對應的題目數據
+            const questionIndex = parseInt(questionId.substring(1)) - 1;
+            const questionData = testQuestionsData[questionIndex];
+
+            if (!questionData) return;
+
+            const allLabels = questionDiv.querySelectorAll('label');
+
+            // 1. 判斷是否已回答 (透過 radio button 的 disabled 狀態)
+            const isAnswered = Array.from(allLabels).some(l => l.querySelector('input').disabled);
+            if (isAnswered) return;
+
+            // 2. 獲取選中答案的實際文本
+            const optionIndex = ['A', 'B', 'C', 'D'].indexOf(selectedValue);
+            const selectedText = questionData.options[optionIndex];
+
+            const isCorrect = selectedText === questionData.answer;
+            
+            // --- 應用反饋與計分 ---
+            
+            // 3. 更新統計數據 (只在第一次點擊時計分)
+            testStats.answered++;
+            if (isCorrect) {
+                testStats.correct++;
+            } else {
+                testStats.wrong++;
+            }
+
+            // 4. 應用樣式
+            if (isCorrect) {
+                clickedLabel.classList.add('correct');
+                clickedLabel.innerHTML += ' ✓';
+                showCelebration('🎉');
+            } else {
+                clickedLabel.classList.add('wrong');
+                clickedLabel.innerHTML += ' ❌';
+                showCelebration('❌');
+
+                // 顯示正確答案
+                allLabels.forEach((l, i) => {
+                    const currentOptionText = questionData.options[i];
+                    if (currentOptionText === questionData.answer) {
+                        l.classList.add('correct');
+                        l.innerHTML += ' ✓';
+                    }
+                });
+            }
+
+            // 5. 禁用所有選項 (鎖定題目)
+            allLabels.forEach(l => {
+                l.classList.add('disabled');
+                l.querySelector('input[type="radio"]').disabled = true;
+            });
+
+            updateTestStats();
+        }
+
+        // 處理「過往試卷」的答案檢查 (現在主要用於確保所有已選的題目都有反饋)
+        function checkTestAnswers() {
+            // 標記是否發生新的評分
+            let newScoringApplied = false;
+
+            document.querySelectorAll('#test .test-question').forEach((questionDiv) => {
+                const selectedRadio = questionDiv.querySelector('input[type="radio"]:checked');
+                const allRadios = questionDiv.querySelectorAll('input[type="radio"]');
+                const isAnswered = Array.from(allRadios).some(r => r.disabled);
+
+                // 如果有選中但還沒有被禁用的 radio 按鈕，則執行即時反饋邏輯
+                if (selectedRadio && !isAnswered) {
+                    // 模擬點擊事件，觸發即時反饋和計分
+                    handleTestOptionClick({ target: selectedRadio });
+                    newScoringApplied = true;
+                }
+            });
+
+            // 確保統計數據是最新的
+            if (!newScoringApplied) {
+                 updateTestStats();
+            }
+            showCelebration('🎯');
+        }
+
+        // 重置「過往試卷」
+        function resetTestPaper() {
+            document.querySelectorAll('#test .test-question').forEach((questionDiv) => {
+                const allLabels = questionDiv.querySelectorAll('label');
+                allLabels.forEach(l => {
+                    l.classList.remove('correct', 'wrong', 'disabled');
+                    l.querySelector('input[type="radio"]').checked = false;
+                    l.querySelector('input[type="radio"]').disabled = false;
+                    // 移除後綴的對錯符號
+                    const html = l.innerHTML;
+                    l.innerHTML = html.replace(' ✓', '').replace(' ❌', '');
+                });
+            });
+
+            // 重置統計數據
+            testStats = { total: testQuestionsData.length, answered: 0, correct: 0, wrong: 0 };
+            updateTestStats();
+        }
+
+        // 更新「過往試卷」的統計數據
+        function updateTestStats() {
+            document.getElementById('testCorrect').textContent = testStats.correct;
+            document.getElementById('testWrong').textContent = testStats.wrong;
+            document.getElementById('testProgress').textContent = `${testStats.answered} / ${testQuestionsData.length}`;
+            const accuracy = testStats.answered > 0 ? Math.round((testStats.correct / testStats.answered) * 100) : 0;
+            document.getElementById('testAccuracy').textContent = accuracy + '%';
+        }
+
+        // 初始化「過往試卷」 - 主要用於綁定事件監聽器
+        function initTestPaper() {
+            resetTestPaper(); 
+
+            document.querySelectorAll('#test .test-question input[type="radio"]').forEach(radio => {
+                // 移除舊的監聽器 (確保不會重複綁定)
+                radio.removeEventListener('click', handleTestOptionClick); 
+                // 綁定新的即時反饋監聽器
+                radio.addEventListener('click', handleTestOptionClick);
+            });
+            testStats.total = testQuestionsData.length;
+            updateTestStats();
+        }
+
+        // --- 價格詢問功能 (Price Quiz - Multi-Question Mode) ---
+
+        // 處理「價格詢問」的即時反饋
+        function handlePriceTestAnswer(clickedOption) {
+            const questionDiv = clickedOption.closest('.test-question');
+            const questionId = questionDiv.dataset.questionId;
+            const allOptions = questionDiv.querySelectorAll('.quiz-option');
+
+            // 檢查是否已回答
+            const alreadyAnswered = Array.from(allOptions).some(
+                opt => opt.classList.contains('correct') || opt.classList.contains('incorrect')
+            );
+            if (alreadyAnswered) return;
+
+            const selectedAnswer = clickedOption.dataset.answer;
+            const isCorrect = clickedOption.dataset.correct === 'true';
+
+            // 更新統計數據
+            priceStats.answered++;
+            if (isCorrect) {
+                priceStats.correct++;
+            } else {
+                priceStats.wrong++;
+            }
+
+            // 應用反饋
+            if (isCorrect) {
+                clickedOption.classList.add('correct');
+                clickedOption.innerHTML += ' ✓';
+                showCelebration('🎉');
+            } else {
+                clickedOption.classList.add('incorrect');
+                clickedOption.innerHTML += ' ❌';
+                showCelebration('❌');
+
+                // 顯示正確答案
+                allOptions.forEach(opt => {
+                    if (opt.dataset.correct === 'true') {
+                        opt.classList.add('correct');
+                        opt.innerHTML += ' ✓';
+                    }
+                });
+            }
+
+            // 禁用所有選項
+            allOptions.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+                opt.style.opacity = '0.7';
+            });
+
+            updatePriceStats();
+        }
+
+        // 更新「價格詢問」的統計數據
+        function updatePriceStats() {
+            document.getElementById('priceCorrect').textContent = priceStats.correct;
+            document.getElementById('priceWrong').textContent = priceStats.wrong;
+            document.getElementById('priceProgress').textContent = `${priceStats.answered} / ${priceTestQuestionsData.length}`;
+            const accuracy = priceStats.answered > 0 ? Math.round((priceStats.correct / priceStats.answered) * 100) : 0;
+            document.getElementById('priceAccuracy').textContent = accuracy + '%';
+        }
+
+        // 重置「價格詢問」
+        function resetPriceTest() {
+            document.querySelectorAll('#price .options-container .quiz-option').forEach(optionDiv => {
+                optionDiv.classList.remove('correct', 'incorrect');
+                optionDiv.style.pointerEvents = 'auto';
+                optionDiv.style.opacity = '1';
+                // 移除後綴的對錯符號
+                const html = optionDiv.innerHTML;
+                optionDiv.innerHTML = html.replace(' ✓', '').replace(' ❌', '');
+            });
+
+            // 重置統計數據
+            priceStats = { total: priceTestQuestionsData.length, answered: 0, correct: 0, wrong: 0 };
+            updatePriceStats();
+        }
+
+        // 初始化「價格詢問」
+        function initPriceTest() {
+            // 確保所有選項 div 都綁定點擊事件
+            document.querySelectorAll('#price .options-container .quiz-option').forEach(optionDiv => {
+                optionDiv.onclick = function() {
+                    handlePriceTestAnswer(this); // 呼叫即時反饋函數
+                };
+                
+                // 清除舊狀態
+                optionDiv.classList.remove('correct', 'wrong');
+                optionDiv.style.pointerEvents = 'auto';
+                optionDiv.style.cursor = 'pointer';
+                optionDiv.style.opacity = '1';
+                // 移除後綴的對錯符號
+                const html = optionDiv.innerHTML;
+                optionDiv.innerHTML = html.replace(' ✓', '').replace(' ❌', '');
+            });
+            
+            priceStats.total = priceTestQuestionsData.length;
+            updatePriceStats();
+        }
+
+
+        // --- 網頁載入時初始化所有功能 ---
+
+        window.addEventListener('load', () => {
+            initFlashcards();
+            initQuiz();
+            initTestPaper(); // 初始化「過往試卷」並綁定即時反饋
+            initPriceTest(); // 初始化「價格詢問」
+            showSection('test'); // 預設顯示過往試卷分頁
+        });
+
+    </script>
+</body>
+</html>
