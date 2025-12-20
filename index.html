@@ -3,313 +3,502 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英語學習互動系統 🎓</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>英語學習小站 - 可愛版</title>
     <style>
-        /* === 保留 123.txt 的所有核心樣式 === */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Microsoft JhengHei', 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #FFE5B4 0%, #FFB6C1 50%, #B0E0E6 100%);
-            min-height: 100vh; padding: 20px;
+        :root {
+            /* 可愛粉嫩色系 */
+            --primary-color: #FF80AB;   /* 粉紅 */
+            --secondary-color: #4DD0E1; /* 粉藍 */
+            --accent-color: #FFD54F;    /* 鵝黃 */
+            --button-text: #fff;
+            --text-color: #5d4037;      /* 深咖啡色文字，比黑色柔和 */
+            --card-bg: rgba(255, 255, 255, 0.9);
         }
-        .container { max-width: 1000px; margin: 0 auto; }
-        .nav-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
-        .nav-tab { background: white; border: 3px solid #FFB84D; border-radius: 12px; padding: 10px 18px; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        .nav-tab.active { background: linear-gradient(135deg, #FFB84D, #FF6B9D); color: white; border-color: #FF6B9D; }
-        
-        .content-section { display: none; animation: fadeIn 0.5s ease; }
-        .content-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 測驗共通樣式 */
-        .quiz-card { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
-        .option-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
-        .quiz-option { 
-            padding: 15px; border: 3px solid #4ECDC4; border-radius: 12px; cursor: pointer; 
-            font-weight: 600; transition: all 0.2s; background: white;
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Microsoft JhengHei', sans-serif; /* 嘗試使用圓體/手寫體 */
+            background-color: #FFDEE9;
+            background-image: linear-gradient(0deg, #FFDEE9 0%, #B5FFFC 100%);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background-attachment: fixed; /* 背景固定，滑動時不跟著動 */
         }
-        .quiz-option:hover { background: #f0fdfa; transform: scale(1.02); }
-        .quiz-option.correct { background: #4CAF50 !important; color: white; border-color: #388E3C !important; }
-        .quiz-option.wrong { background: #F44336 !important; color: white; border-color: #D32F2F !important; }
-        .disabled { pointer-events: none; }
+
+        h1 {
+            color: #ec407a;
+            margin-bottom: 30px;
+            text-align: center;
+            text-shadow: 2px 2px 0px #fff;
+            font-size: 2.5rem;
+        }
+
+        .menu-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 30px;
+            max-width: 800px;
+        }
+
+        .btn {
+            padding: 15px 25px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 25px; /* 圓滾滾的按鈕 */
+            cursor: pointer;
+            color: white;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            font-family: inherit;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* 各種按鈕顏色 */
+        .btn-flash { background-color: #4DB6AC; } /* 綠松石 */
+        .btn-vocab-ec { background-color: #FF8A65; } /* 珊瑚紅 */
+        .btn-vocab-ce { background-color: #9575CD; } /* 紫色 */
+        .btn-grammar { background-color: #64B5F6; } /* 藍色 */
+        .btn-home { background-color: #90A4AE; margin-top: 20px; }
+        .next-btn { background-color: #F06292; color: white; display: none; margin-top: 20px; }
+
+        .section {
+            display: none;
+            width: 90%;
+            max-width: 600px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 30px; /* 大圓角卡片 */
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.5);
+            animation: popIn 0.5s;
+            border: 4px solid #fff;
+        }
+
+        .active { display: block; }
 
         /* 閃卡樣式 */
-        .flashcard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; }
-        .flashcard { perspective: 1000px; height: 220px; cursor: pointer; }
-        .flashcard-inner { position: relative; width: 100%; height: 100%; transition: 0.6s; transform-style: preserve-3d; }
-        .flashcard.flipped .flashcard-inner { transform: rotateY(180deg); }
-        .flashcard-front, .flashcard-back { 
-            position: absolute; width: 100%; height: 100%; backface-visibility: hidden; 
-            border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        .flashcard-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 15px;
         }
-        .flashcard-front { background: white; border: 4px solid #FFB84D; }
-        .flashcard-back { background: #4ECDC4; color: white; transform: rotateY(180deg); border: 4px solid #44A08D; }
+
+        .flashcard {
+            background: #fff;
+            border: 3px solid #E0F7FA;
+            border-radius: 20px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .flashcard:hover {
+            border-color: var(--primary-color);
+            transform: scale(1.08) rotate(-2deg); /* 懸停時稍微歪一點，比較可愛 */
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+
+        .word-en { font-size: 1.1em; font-weight: bold; color: #ec407a; margin-bottom: 5px; }
+        .word-zh { font-size: 0.9em; color: #78909c; }
+
+        /* 測驗樣式 */
+        .quiz-container { text-align: center; }
+        
+        .question-box {
+            font-size: 1.6em;
+            margin-bottom: 25px;
+            font-weight: bold;
+            color: #5d4037;
+            background-color: #FFF9C4; /* 淺黃色背景 */
+            padding: 20px;
+            border-radius: 20px;
+            border: 3px dashed #FBC02D; /* 虛線邊框 */
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background-color: #fff;
+            border: 2px solid #eee;
+            color: #555;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .option-btn:hover {
+            background-color: #E1BEE7;
+            border-color: #BA68C8;
+            color: white;
+        }
+        
+        .correct { background-color: #C8E6C9 !important; border-color: #43A047 !important; color: #1B5E20 !important; }
+        .wrong { background-color: #FFCDD2 !important; border-color: #E53935 !important; color: #B71C1C !important; }
+
+        .feedback-icon {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            height: 60px;
+            animation: bounce 0.5s;
+        }
+        
+        .score-board {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #888;
+            background: #fff;
+            display: inline-block;
+            padding: 5px 20px;
+            border-radius: 50px;
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-20px);}
+            60% {transform: translateY(-10px);}
+        }
+
+        /* RWD */
+        @media (max-width: 500px) {
+            .options-grid { grid-template-columns: 1fr; }
+            h1 { font-size: 2rem; }
+            .menu-container { flex-direction: column; align-items: stretch; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="nav-tabs">
-            <button class="nav-tab active" onclick="showSection('flashcards')">🎴 語音閃卡</button>
-            <button class="nav-tab" onclick="showSection('new_quiz')">🔤 單字測驗</button>
-            <button class="nav-tab" onclick="showSection('original_audio')">🎧 互動聽力</button>
-            <button class="nav-tab" onclick="showSection('original_paper')">📝 過往試卷</button>
-            <button class="nav-tab" onclick="showSection('original_price')">💰 價格詢問</button>
+
+    <h1>🎈 英語快樂學 🎈</h1>
+
+    <div id="main-menu" class="menu-container">
+        <button class="btn btn-flash" onclick="showSection('flashcards')">
+            📖 單字閃卡
+        </button>
+        <button class="btn btn-vocab-ec" onclick="startVocabQuiz('en_to_zh')">
+            🇺🇸➡🇹🇼 看英文選中文
+        </button>
+        <button class="btn btn-vocab-ce" onclick="startVocabQuiz('zh_to_en')">
+            🇹🇼➡🇺🇸 看中文選英文
+        </button>
+        <button class="btn btn-grammar" onclick="startGrammarQuiz()">
+            💰 語法與價格測驗
+        </button>
+    </div>
+
+    <div id="flashcards" class="section">
+        <h2 style="text-align: center; color: #4DB6AC;">✨ 點擊單字聽發音 ✨</h2>
+        <div class="flashcard-container" id="flashcard-list">
+            </div>
+        <div style="text-align: center;">
+            <button class="btn btn-home" onclick="showSection('main-menu')">🏠 回首頁</button>
         </div>
+    </div>
 
-        <section id="flashcards" class="content-section active">
-            <div class="flashcard-grid" id="flashcardGrid"></div>
-        </section>
-
-        <section id="new_quiz" class="content-section">
-            <div class="quiz-card">
-                <div id="v-emoji" class="text-7xl mb-4">❓</div>
-                <div id="v-question" class="text-3xl font-bold mb-6">Question</div>
-                <div id="v-options" class="option-grid"></div>
-                <div id="v-feedback" class="mt-6 text-xl font-bold h-8"></div>
+    <div id="quiz-area" class="section">
+        <div style="text-align: center;">
+            <div class="score-board">⭐ 得分: <span id="current-score">0</span> / <span id="total-questions">0</span></div>
+            <div class="feedback-icon" id="feedback-icon"></div>
+        </div>
+        
+        <div class="question-box" id="question-text">題目載入中...</div>
+        
+        <div class="options-grid" id="options-area">
             </div>
-        </section>
-
-        <section id="original_audio" class="content-section">
-            <div class="quiz-card">
-                <div class="mb-8">
-                    <button onclick="playAudioQuest()" class="bg-indigo-500 text-white px-8 py-3 rounded-full font-bold text-lg shadow-lg">🔊 播放題目語音</button>
-                </div>
-                <div id="a-options" class="option-grid"></div>
-                <div id="a-feedback" class="mt-6 text-xl font-bold h-8"></div>
-            </div>
-        </section>
-
-        <section id="original_paper" class="content-section">
-            <div class="quiz-card">
-                <div class="text-sm text-gray-500 mb-2">過往試卷 - 第 <span id="p-idx">1</span> 題</div>
-                <div id="p-question" class="text-2xl font-bold mb-6 text-left border-l-4 border-orange-400 pl-4">Question</div>
-                <div id="p-options" class="flex flex-col gap-3"></div>
-                <div id="p-feedback" class="mt-6 text-xl font-bold h-8"></div>
-            </div>
-        </section>
-
-        <section id="original_price" class="content-section">
-            <div class="quiz-card">
-                <div class="text-sm text-gray-500 mb-2">價格詢問語法練習 - <span id="pr-idx">1</span>/28</div>
-                <div id="pr-question" class="text-2xl font-bold mb-6 text-blue-600">Question</div>
-                <div id="pr-options" class="option-grid"></div>
-                <div id="pr-feedback" class="mt-6 text-xl font-bold h-8"></div>
-            </div>
-        </section>
+        
+        <div style="text-align: center;">
+            <button class="btn next-btn" id="next-btn" onclick="nextQuestion()">➡ 下一題</button>
+            <button class="btn btn-home" id="quit-btn" onclick="showSection('main-menu')">🚪 結束測驗</button>
+        </div>
     </div>
 
     <script>
-        // === 資料庫區 ===
-        // 新單字 (從圖片中提取)
-        const vocabData = [
-            { en: "Waterfall", tw: "瀑布", emoji: "🌊" }, { en: "Hiking", tw: "健行", emoji: "🥾" },
-            { en: "Temple", tw: "寺廟", emoji: "⛩️" }, { en: "Old street", tw: "老街", emoji: "🏮" },
-            { en: "Biking", tw: "騎單車", emoji: "🚴" }, { en: "Surfing", tw: "衝浪", emoji: "🏄" },
-            { en: "Lantern", tw: "燈籠", emoji: "🏮" }, { en: "Night market", tw: "夜市", emoji: "🌃" },
-            { en: "Scuba diving", tw: "潛水", emoji: "🤿" }, { en: "Snorkeling", tw: "浮潛", emoji: "🽵" },
-            { en: "Paragliding", tw: "飛行傘", emoji: "🪂" }, { en: "Museum", tw: "博物館", emoji: "🏛️" },
-            { en: "Hot spring", tw: "溫泉", emoji: "♨️" }, { en: "Canoeing", tw: "划皮划艇", emoji: "🛶" },
-            { en: "Amusement park", tw: "遊樂園", emoji: "🎡" }, { en: "National park", tw: "國家公園", emoji: "🏞️" },
-            { en: "Zoo", tw: "動物園", emoji: "🦁" }, { en: "Aquarium", tw: "水族館", emoji: "🐠" },
-            { en: "Beach", tw: "海灘", emoji: "🏖️" }, { en: "Mountain", tw: "山", emoji: "⛰️" }
+        // --- 1. 資料庫 (圖片中的單字) ---
+        const vocabulary = [
+            // Image 1
+            { en: 'eggs', zh: '雞蛋 (複數)', type: 'plural' },
+            { en: 'oranges', zh: '柳橙 (複數)', type: 'plural' },
+            { en: 'strawberries', zh: '草莓 (複數)', type: 'plural' },
+            { en: 'watermelons', zh: '西瓜 (複數)', type: 'plural' },
+            { en: 'cookies', zh: '餅乾 (複數)', type: 'plural' },
+            { en: 'hamburgers', zh: '漢堡 (複數)', type: 'plural' },
+            { en: 'hot dogs', zh: '熱狗 (複數)', type: 'plural' },
+            // Image 2
+            { en: 'sandwiches', zh: '三明治 (複數)', type: 'plural' },
+            { en: 'how many', zh: '幾個', type: 'grammar' },
+            { en: 'need', zh: '需要', type: 'verb' },
+            { en: 'how much', zh: '多少錢', type: 'grammar' },
+            { en: 'dollar', zh: '元 (貨幣單位)', type: 'noun' },
+            { en: 'hundred', zh: '百 (數字)', type: 'number' },
+            // Image 3
+            { en: 'dinner', zh: '晚餐', type: 'uncountable' },
+            { en: 'bread', zh: '麵包', type: 'uncountable' },
+            { en: 'chicken', zh: '雞肉', type: 'uncountable' },
+            { en: 'would like', zh: '想要', type: 'verb' },
+            // Image 4
+            { en: 'breakfast', zh: '早餐', type: 'uncountable' },
+            { en: 'rice', zh: '米飯', type: 'uncountable' },
+            { en: 'soup', zh: '湯', type: 'uncountable' },
+            { en: 'lunch', zh: '午餐', type: 'uncountable' },
+            { en: 'noodles', zh: '麵', type: 'plural' }
         ];
 
-        // 聽力題目 (123.txt 原型)
-        const audioQuests = [
-            { q: "How much is this jacket?", options: ["It's $500.", "It's red.", "It's small."], correct: 0 },
-            { q: "May I help you?", options: ["No.", "Yes, please.", "I am fine."], correct: 1 }
-        ];
+        // --- 2. 狀態變數 ---
+        let currentMode = ''; // 'vocab' or 'grammar'
+        let vocabDirection = ''; // 'en_to_zh' or 'zh_to_en'
+        let currentScore = 0;
+        let questionCount = 0;
+        let isAnswered = false;
 
-        // 過往試卷 (123.txt 15題)
-        const paperQuests = [
-            { q: "______ is the doll? It's three hundred dollars.", options: ["How many", "How much", "How old"], correct: 1 },
-            { q: "______ is the hot dog?", options: ["How many", "How much", "What"], correct: 1 },
-            { q: "I ______ ten eggs.", options: ["need", "needs", "needing"], correct: 0 },
-            { q: "How much ______ the cookies?", options: ["is", "are", "do"], correct: 1 },
-            { q: "How many ______ do you need?", options: ["egg", "eggs", "an egg"], correct: 1 },
-            { q: "Rearrange: need / I / eggs / ten / .", options: ["I need ten eggs.", "I ten eggs need.", "Ten eggs I need."], correct: 0 },
-            // ... (其餘題目以此類推)
-        ];
-
-        // 價格詢問 (123.txt 28題 結構化)
-        const priceQuests = [
-            { q: "______ eggs do you need?", options: ["How many", "How much", "How old", "How long"], ans: "How many" },
-            { q: "______ rice do you need?", options: ["How many", "How much", "How far", "How often"], ans: "How much" },
-            { q: "How much ______ the hot dog?", options: ["is", "are", "do", "does"], ans: "is" },
-            { q: "How much ______ the cookies?", options: ["is", "are", "do", "does"], ans: "are" },
-            { q: "How many watermelons ______ she need?", options: ["do", "does", "is", "are"], ans: "does" },
-            // 此處已為您擴充至 28 題邏輯，代碼中隨機從庫中取出
-        ];
-        // 自動生成 28 題 (示範邏輯，實際運作會依照庫中數據)
-        for(let i=priceQuests.length; i<28; i++) {
-            priceQuests.push({ q: `Question ${i+1}: Correct usage test?`, options: ["Option A", "Option B", "Option C", "Option D"], ans: "Option A" });
-        }
-
-        let currentIdx = { audio: 0, paper: 0, price: 0 };
-
-        // === 功能邏輯 ===
-
-        function showSection(id) {
-            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            event.target.classList.add('active');
-
-            if(id === 'flashcards') initFlashcards();
-            if(id === 'new_quiz') initVocabQuiz();
-            if(id === 'original_audio') initAudioQuiz();
-            if(id === 'original_paper') initPaperQuiz();
-            if(id === 'original_price') initPriceQuiz();
-        }
-
-        // 1. 閃卡
-        function initFlashcards() {
-            const grid = document.getElementById('flashcardGrid');
-            grid.innerHTML = '';
-            vocabData.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'flashcard';
-                div.innerHTML = `
-                    <div class="flashcard-inner" onclick="this.parentElement.classList.toggle('flipped')">
-                        <div class="flashcard-front">
-                            <div class="text-5xl mb-3">${item.emoji}</div>
-                            <div class="text-xl font-bold">${item.en}</div>
-                            <button onclick="event.stopPropagation(); speak('${item.en}')" class="mt-4 bg-gray-100 p-2 rounded-full">🔊</button>
-                        </div>
-                        <div class="flashcard-back">
-                            <div class="text-2xl font-bold">${item.tw}</div>
-                        </div>
-                    </div>`;
-                grid.appendChild(div);
-            });
-        }
-
-        // 2. 單字測驗 (自動跳題)
-        function initVocabQuiz() {
-            const q = vocabData[Math.floor(Math.random()*vocabData.length)];
-            const isEnToTw = Math.random() > 0.5;
-            document.getElementById('v-emoji').innerText = q.emoji;
-            document.getElementById('v-question').innerText = isEnToTw ? q.en : q.tw;
+        // --- 3. 音效 (Web Audio API) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
             
-            let opts = [q];
-            while(opts.length < 4) {
-                let r = vocabData[Math.floor(Math.random()*vocabData.length)];
-                if(!opts.includes(r)) opts.push(r);
+            if (type === 'correct') { // 輕快的高音
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime); // E5
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } else { // 柔和的低音
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
             }
-            opts.sort(() => Math.random() - 0.5);
+        }
 
-            const container = document.getElementById('v-options');
+        function speakWord(text) {
+            // 只有英文才發音
+            if (/^[a-zA-Z\s]+$/.test(text)) {
+                const msg = new SpeechSynthesisUtterance();
+                msg.text = text;
+                msg.lang = 'en-US';
+                window.speechSynthesis.speak(msg);
+            }
+        }
+
+        // --- 4. 介面控制 ---
+        function showSection(id) {
+            document.getElementById('main-menu').style.display = (id === 'main-menu') ? 'flex' : 'none';
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            if (id !== 'main-menu') document.getElementById(id).classList.add('active');
+            if (id === 'flashcards') initFlashcards();
+        }
+
+        function initFlashcards() {
+            const container = document.getElementById('flashcard-list');
             container.innerHTML = '';
-            opts.forEach(o => {
-                const btn = document.createElement('div');
-                btn.className = 'quiz-option';
-                btn.innerText = isEnToTw ? o.tw : o.en;
-                btn.onclick = () => {
-                    if(o === q) {
-                        btn.classList.add('correct');
-                        document.getElementById('v-feedback').innerText = "✅ Excellent!";
-                        setTimeout(initVocabQuiz, 1200);
-                    } else {
-                        btn.classList.add('wrong');
-                        document.getElementById('v-feedback').innerText = "❌ Try Again!";
-                        setTimeout(() => { btn.classList.remove('wrong'); document.getElementById('v-feedback').innerText = ""; }, 800);
-                    }
-                };
-                container.appendChild(btn);
+            vocabulary.forEach(word => {
+                const card = document.createElement('div');
+                card.className = 'flashcard';
+                card.innerHTML = `<div class="word-en">${word.en}</div><div class="word-zh">${word.zh}</div>`;
+                card.onclick = () => speakWord(word.en);
+                container.appendChild(card);
             });
         }
 
-        // 3. 聽力測驗 (123.txt 模式)
-        function initAudioQuiz() {
-            const data = audioQuests[currentIdx.audio];
-            const container = document.getElementById('a-options');
-            container.innerHTML = '';
-            document.getElementById('a-feedback').innerText = "";
-            data.options.forEach((opt, i) => {
-                const btn = document.createElement('div');
-                btn.className = 'quiz-option';
-                btn.innerText = opt;
+        // --- 5. 測驗核心 ---
+        function resetQuizState(mode) {
+            currentMode = mode;
+            currentScore = 0;
+            questionCount = 0;
+            document.getElementById('current-score').textContent = 0;
+            document.getElementById('total-questions').textContent = 0;
+            document.getElementById('quit-btn').style.display = 'inline-block';
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            isAnswered = false;
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('feedback-icon').textContent = '';
+            
+            if (currentMode === 'vocab') generateVocabQuestion();
+            else generateGrammarQuestion();
+        }
+
+        function handleAnswer(btn, isCorrect, correctText) {
+            if (isAnswered) return;
+            isAnswered = true;
+            questionCount++;
+            document.getElementById('total-questions').textContent = questionCount;
+            
+            const options = document.querySelectorAll('.option-btn');
+            options.forEach(b => b.disabled = true);
+
+            const feedback = document.getElementById('feedback-icon');
+
+            if (isCorrect) {
+                currentScore++;
+                document.getElementById('current-score').textContent = currentScore;
+                btn.classList.add('correct');
+                feedback.innerHTML = '🎉';
+                playSound('correct');
+            } else {
+                btn.classList.add('wrong');
+                feedback.innerHTML = '🐷'; // 答錯顯示可愛豬豬
+                playSound('wrong');
+                options.forEach(b => {
+                    if (b.textContent === correctText) b.classList.add('correct');
+                });
+            }
+            document.getElementById('next-btn').style.display = 'inline-block';
+        }
+
+        function shuffle(array) { return array.sort(() => Math.random() - 0.5); }
+
+        // --- 6. 單字測驗 (雙模式) ---
+        function startVocabQuiz(direction) {
+            vocabDirection = direction; // 'en_to_zh' or 'zh_to_en'
+            showSection('quiz-area');
+            resetQuizState('vocab');
+        }
+
+        function generateVocabQuestion() {
+            const target = vocabulary[Math.floor(Math.random() * vocabulary.length)];
+            let question, correctAns, wrongPool;
+
+            if (vocabDirection === 'en_to_zh') {
+                // 題目：英文，選項：中文
+                question = target.en;
+                correctAns = target.zh;
+                wrongPool = vocabulary.filter(w => w.zh !== target.zh).map(w => w.zh);
+                speakWord(target.en); // 唸出題目
+            } else {
+                // 題目：中文，選項：英文
+                question = target.zh;
+                correctAns = target.en;
+                wrongPool = vocabulary.filter(w => w.en !== target.en).map(w => w.en);
+            }
+
+            document.getElementById('question-text').textContent = question;
+            
+            let options = [correctAns];
+            options = options.concat(shuffle(wrongPool).slice(0, 3));
+            options = shuffle(options);
+
+            const area = document.getElementById('options-area');
+            area.innerHTML = '';
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = opt;
                 btn.onclick = () => {
-                    if(i === data.correct) {
-                        btn.classList.add('correct');
-                        document.getElementById('a-feedback').innerText = "✅ Correct!";
-                        currentIdx.audio = (currentIdx.audio + 1) % audioQuests.length;
-                        setTimeout(initAudioQuiz, 1500);
-                    } else {
-                        btn.classList.add('wrong');
-                        document.getElementById('a-feedback').innerText = "❌ Wrong Answer";
-                    }
+                    handleAnswer(btn, opt === correctAns, correctAns);
+                    if (vocabDirection === 'zh_to_en') speakWord(opt); // 選項是英文時，點擊發音
+                    else if (vocabDirection === 'en_to_zh' && opt === correctAns) speakWord(target.en); // 答對時重唸
                 };
-                container.appendChild(btn);
+                area.appendChild(btn);
             });
         }
-        function playAudioQuest() { speak(audioQuests[currentIdx.audio].q); }
 
-        // 4. 過往試卷 (修復卡住問題)
-        function initPaperQuiz() {
-            const data = paperQuests[currentIdx.paper];
-            document.getElementById('p-idx').innerText = currentIdx.paper + 1;
-            document.getElementById('p-question').innerText = data.q;
-            const container = document.getElementById('p-options');
-            container.innerHTML = '';
-            document.getElementById('p-feedback').innerText = "";
+        // --- 7. 語法測驗 ---
+        function startGrammarQuiz() {
+            showSection('quiz-area');
+            resetQuizState('grammar');
+        }
 
-            data.options.forEach((opt, i) => {
-                const btn = document.createElement('div');
-                btn.className = 'quiz-option text-left';
-                btn.innerText = `${String.fromCharCode(65+i)}) ${opt}`;
-                btn.onclick = () => {
-                    if(i === data.correct) {
-                        btn.classList.add('correct');
-                        document.getElementById('p-feedback').innerText = "🎉 答對了！";
-                        currentIdx.paper = (currentIdx.paper + 1) % paperQuests.length;
-                        setTimeout(initPaperQuiz, 1500);
+        function generateGrammarQuestion() {
+            const type = Math.floor(Math.random() * 4);
+            const plurals = vocabulary.filter(w => w.type === 'plural');
+            const uncountables = vocabulary.filter(w => w.type === 'uncountable');
+            const randPl = plurals[Math.floor(Math.random() * plurals.length)];
+            const randUc = uncountables[Math.floor(Math.random() * uncountables.length)];
+
+            let qText = "", ans = "", opts = [];
+
+            switch(type) {
+                case 0: // How many/much
+                    if (Math.random() > 0.5) {
+                        qText = `_______ ${randPl.en} do you need?`; ans = "How many";
                     } else {
-                        btn.classList.add('wrong');
-                        document.getElementById('p-feedback').innerText = "😢 再想一下...";
+                        qText = `_______ ${randUc.en} do you need?`; ans = "How much";
                     }
+                    opts = ["How many", "How much", "What", "Who"];
+                    break;
+                case 1: // is/are
+                    if (Math.random() > 0.5) {
+                        qText = `How much _______ the ${randPl.en}?`; ans = "are";
+                    } else {
+                        qText = `How much _______ the ${randUc.en}?`; ans = "is";
+                    }
+                    opts = ["is", "are", "do", "does"];
+                    break;
+                case 2: // do/does
+                    const subjs = [{s:"you",v:"do"}, {s:"he",v:"does"}, {s:"she",v:"does"}, {s:"Amy",v:"does"}];
+                    const pick = subjs[Math.floor(Math.random()*subjs.length)];
+                    qText = `_______ ${pick.s} want some ${randPl.en}?`;
+                    ans = pick.v === "do" ? "Do" : "Does";
+                    opts = ["Do", "Does", "Is", "Are"];
+                    break;
+                case 3: // Context
+                    const tpls = [
+                        {q: "I want one _______.", a: "hundred", o: ["hundred", "dollar", "much", "many"]},
+                        {q: "The soup is 50 _______.", a: "dollars", o: ["dollars", "dollar", "price", "is"]}, // Trick: dollars
+                        {q: "I eat _______ for lunch.", a: "noodles", o: ["noodles", "how many", "does", "dollar"]}
+                    ];
+                    const t = tpls[Math.floor(Math.random()*tpls.length)];
+                    qText = t.q; ans = t.a; opts = t.o;
+                    break;
+            }
+
+            if (!opts.includes(ans)) opts[0] = ans;
+            opts = shuffle(opts);
+
+            document.getElementById('question-text').textContent = qText;
+            const area = document.getElementById('options-area');
+            area.innerHTML = '';
+            opts.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = opt;
+                btn.onclick = () => {
+                    handleAnswer(btn, opt.toLowerCase() === ans.toLowerCase(), ans);
+                    speakWord(opt);
                 };
-                container.appendChild(btn);
+                area.appendChild(btn);
             });
         }
-
-        // 5. 價格詢問 (28題 自動跳題)
-        function initPriceQuiz() {
-            const data = priceQuests[currentIdx.price];
-            document.getElementById('pr-idx').innerText = currentIdx.price + 1;
-            document.getElementById('pr-question').innerText = data.q;
-            const container = document.getElementById('pr-options');
-            container.innerHTML = '';
-            document.getElementById('pr-feedback').innerText = "";
-
-            data.options.forEach(opt => {
-                const btn = document.createElement('div');
-                btn.className = 'quiz-option';
-                btn.innerText = opt;
-                btn.onclick = () => {
-                    if(opt === data.ans) {
-                        btn.classList.add('correct');
-                        document.getElementById('pr-feedback').innerText = "✨ Correct Usage!";
-                        currentIdx.price = (currentIdx.price + 1) % 28;
-                        setTimeout(initPriceQuiz, 1500);
-                    } else {
-                        btn.classList.add('wrong');
-                        document.getElementById('pr-feedback').innerText = "❌ Incorrect";
-                    }
-                };
-                container.appendChild(btn);
-            });
-        }
-
-        function speak(text) {
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = 'en-US';
-            window.speechSynthesis.speak(u);
-        }
-
-        window.onload = initFlashcards;
     </script>
 </body>
 </html>
