@@ -3,502 +3,292 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英語學習小站 - 可愛版</title>
+    <title>Code 128 (Mod 10) 第 20 碼驗證碼與條碼產生器</title>
+    <!-- 引入 JsBarcode 函式庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
         :root {
-            /* 可愛粉嫩色系 */
-            --primary-color: #FF80AB;   /* 粉紅 */
-            --secondary-color: #4DD0E1; /* 粉藍 */
-            --accent-color: #FFD54F;    /* 鵝黃 */
-            --button-text: #fff;
-            --text-color: #5d4037;      /* 深咖啡色文字，比黑色柔和 */
-            --card-bg: rgba(255, 255, 255, 0.9);
+            --primary-color: #2b5c8f;
+            --primary-hover: #1d4066;
+            --bg-color: #f4f7f9;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #dcdfe6;
+            --success-color: #2e7d32;
+            --error-color: #c62828;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Microsoft JhengHei', sans-serif; /* 嘗試使用圓體/手寫體 */
-            background-color: #FFDEE9;
-            background-image: linear-gradient(0deg, #FFDEE9 0%, #B5FFFC 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
             color: var(--text-color);
-            margin: 0;
-            padding: 20px;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-attachment: fixed; /* 背景固定，滑動時不跟著動 */
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 580px;
         }
 
         h1 {
-            color: #ec407a;
-            margin-bottom: 30px;
+            font-size: 22px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
             text-align: center;
-            text-shadow: 2px 2px 0px #fff;
-            font-size: 2.5rem;
+            border-bottom: 2px solid #eef2f5;
+            padding-bottom: 12px;
         }
 
-        .menu-container {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 30px;
-            max-width: 800px;
+        .form-group {
+            margin-bottom: 20px;
         }
 
-        .btn {
-            padding: 15px 25px;
-            font-size: 1.1rem;
-            border: none;
-            border-radius: 25px; /* 圓滾滾的按鈕 */
-            cursor: pointer;
-            color: white;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            font-family: inherit;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        /* 各種按鈕顏色 */
-        .btn-flash { background-color: #4DB6AC; } /* 綠松石 */
-        .btn-vocab-ec { background-color: #FF8A65; } /* 珊瑚紅 */
-        .btn-vocab-ce { background-color: #9575CD; } /* 紫色 */
-        .btn-grammar { background-color: #64B5F6; } /* 藍色 */
-        .btn-home { background-color: #90A4AE; margin-top: 20px; }
-        .next-btn { background-color: #F06292; color: white; display: none; margin-top: 20px; }
-
-        .section {
-            display: none;
-            width: 90%;
-            max-width: 600px;
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 30px; /* 大圓角卡片 */
-            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.5);
-            animation: popIn 0.5s;
-            border: 4px solid #fff;
-        }
-
-        .active { display: block; }
-
-        /* 閃卡樣式 */
-        .flashcard-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 15px;
-        }
-
-        .flashcard {
-            background: #fff;
-            border: 3px solid #E0F7FA;
-            border-radius: 20px;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        .flashcard:hover {
-            border-color: var(--primary-color);
-            transform: scale(1.08) rotate(-2deg); /* 懸停時稍微歪一點，比較可愛 */
-            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
-        }
-
-        .word-en { font-size: 1.1em; font-weight: bold; color: #ec407a; margin-bottom: 5px; }
-        .word-zh { font-size: 0.9em; color: #78909c; }
-
-        /* 測驗樣式 */
-        .quiz-container { text-align: center; }
-        
-        .question-box {
-            font-size: 1.6em;
-            margin-bottom: 25px;
-            font-weight: bold;
-            color: #5d4037;
-            background-color: #FFF9C4; /* 淺黃色背景 */
-            padding: 20px;
-            border-radius: 20px;
-            border: 3px dashed #FBC02D; /* 虛線邊框 */
-        }
-
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .option-btn {
-            background-color: #fff;
-            border: 2px solid #eee;
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
             color: #555;
-            padding: 15px;
-            border-radius: 15px;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: inherit;
         }
 
-        .option-btn:hover {
-            background-color: #E1BEE7;
-            border-color: #BA68C8;
-            color: white;
+        .input-wrapper {
+            position: relative;
         }
-        
-        .correct { background-color: #C8E6C9 !important; border-color: #43A047 !important; color: #1B5E20 !important; }
-        .wrong { background-color: #FFCDD2 !important; border-color: #E53935 !important; color: #B71C1C !important; }
 
-        .feedback-icon {
-            font-size: 3.5rem;
-            margin-bottom: 10px;
-            height: 60px;
-            animation: bounce 0.5s;
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 18px;
+            letter-spacing: 2px;
+            font-family: monospace;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.2s;
         }
-        
-        .score-board {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
+
+        input[type="text"]:focus {
+            border-color: var(--primary-color);
+        }
+
+        .char-count {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
             color: #888;
-            background: #fff;
-            display: inline-block;
-            padding: 5px 20px;
-            border-radius: 50px;
+            font-family: sans-serif;
         }
 
-        @keyframes popIn {
-            0% { opacity: 0; transform: scale(0.8); }
-            100% { opacity: 1; transform: scale(1); }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
         }
 
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-            40% {transform: translateY(-20px);}
-            60% {transform: translateY(-10px);}
+        button:hover {
+            background-color: var(--primary-hover);
         }
 
-        /* RWD */
-        @media (max-width: 500px) {
-            .options-grid { grid-template-columns: 1fr; }
-            h1 { font-size: 2rem; }
-            .menu-container { flex-direction: column; align-items: stretch; }
+        .result-box {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result-box.active {
+            display: block;
+        }
+
+        .result-item {
+            margin-bottom: 15px;
+        }
+
+        .result-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .result-value {
+            font-family: monospace;
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-color);
+            letter-spacing: 2px;
+            word-break: break-all;
+        }
+
+        .check-digit {
+            color: var(--success-color);
+            font-size: 26px;
+        }
+
+        .barcode-container {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #ffffff;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        #barcode {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .error-msg {
+            color: var(--error-color);
+            font-size: 14px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .info-card {
+            margin-top: 20px;
+            padding: 12px 15px;
+            background-color: #edf2f7;
+            border-left: 4px solid var(--primary-color);
+            border-radius: 4px;
+            font-size: 13px;
+            color: #4a5568;
+            line-height: 1.5;
         }
     </style>
 </head>
 <body>
 
-    <h1>🎈 英語快樂學 🎈</h1>
+<div class="container">
+    <h1>Code 128 第20碼驗證碼與條碼產生器</h1>
 
-    <div id="main-menu" class="menu-container">
-        <button class="btn btn-flash" onclick="showSection('flashcards')">
-            📖 單字閃卡
-        </button>
-        <button class="btn btn-vocab-ec" onclick="startVocabQuiz('en_to_zh')">
-            🇺🇸➡🇹🇼 看英文選中文
-        </button>
-        <button class="btn btn-vocab-ce" onclick="startVocabQuiz('zh_to_en')">
-            🇹🇼➡🇺🇸 看中文選英文
-        </button>
-        <button class="btn btn-grammar" onclick="startGrammarQuiz()">
-            💰 語法與價格測驗
-        </button>
+    <div class="form-group">
+        <label for="barcode19">請輸入前 19 碼數字：</label>
+        <div class="input-wrapper">
+            <input type="text" id="barcode19" maxlength="19" placeholder="請輸入 19 位數" autocomplete="off">
+            <span class="char-count" id="charCount">0/19</span>
+        </div>
+        <div class="error-msg" id="errorMsg">請輸入剛好 19 位數字！</div>
     </div>
 
-    <div id="flashcards" class="section">
-        <h2 style="text-align: center; color: #4DB6AC;">✨ 點擊單字聽發音 ✨</h2>
-        <div class="flashcard-container" id="flashcard-list">
-            </div>
-        <div style="text-align: center;">
-            <button class="btn btn-home" onclick="showSection('main-menu')">🏠 回首頁</button>
+    <button id="calcBtn">自動計算第 20 碼並繪製條碼</button>
+
+    <div class="result-box" id="resultBox">
+        <div class="result-item">
+            <div class="result-label">第 20 碼驗證碼 (Mod 10)：</div>
+            <div class="result-value check-digit" id="checkDigitVal">-</div>
+        </div>
+        <hr style="border: none; border-top: 1px dashed #cbd5e0; margin: 12px 0;">
+        <div class="result-item">
+            <div class="result-label">完整 20 碼內容：</div>
+            <div class="result-value" id="fullBarcodeVal">-</div>
+        </div>
+        
+        <div class="barcode-container">
+            <div class="result-label" style="margin-bottom: 8px;">Code 128 條碼預覽：</div>
+            <svg id="barcode"></svg>
         </div>
     </div>
 
-    <div id="quiz-area" class="section">
-        <div style="text-align: center;">
-            <div class="score-board">⭐ 得分: <span id="current-score">0</span> / <span id="total-questions">0</span></div>
-            <div class="feedback-icon" id="feedback-icon"></div>
-        </div>
-        
-        <div class="question-box" id="question-text">題目載入中...</div>
-        
-        <div class="options-grid" id="options-area">
-            </div>
-        
-        <div style="text-align: center;">
-            <button class="btn next-btn" id="next-btn" onclick="nextQuestion()">➡ 下一題</button>
-            <button class="btn btn-home" id="quit-btn" onclick="showSection('main-menu')">🚪 結束測驗</button>
-        </div>
+    <div class="info-card">
+        <strong>說明：</strong> 本工具採用標準 Modulus 10 演算法計算第 20 位檢查碼，並即時以 Code 128 格式繪製可掃描之條碼影像。
     </div>
+</div>
 
-    <script>
-        // --- 1. 資料庫 (圖片中的單字) ---
-        const vocabulary = [
-            // Image 1
-            { en: 'eggs', zh: '雞蛋 (複數)', type: 'plural' },
-            { en: 'oranges', zh: '柳橙 (複數)', type: 'plural' },
-            { en: 'strawberries', zh: '草莓 (複數)', type: 'plural' },
-            { en: 'watermelons', zh: '西瓜 (複數)', type: 'plural' },
-            { en: 'cookies', zh: '餅乾 (複數)', type: 'plural' },
-            { en: 'hamburgers', zh: '漢堡 (複數)', type: 'plural' },
-            { en: 'hot dogs', zh: '熱狗 (複數)', type: 'plural' },
-            // Image 2
-            { en: 'sandwiches', zh: '三明治 (複數)', type: 'plural' },
-            { en: 'how many', zh: '幾個', type: 'grammar' },
-            { en: 'need', zh: '需要', type: 'verb' },
-            { en: 'how much', zh: '多少錢', type: 'grammar' },
-            { en: 'dollar', zh: '元 (貨幣單位)', type: 'noun' },
-            { en: 'hundred', zh: '百 (數字)', type: 'number' },
-            // Image 3
-            { en: 'dinner', zh: '晚餐', type: 'uncountable' },
-            { en: 'bread', zh: '麵包', type: 'uncountable' },
-            { en: 'chicken', zh: '雞肉', type: 'uncountable' },
-            { en: 'would like', zh: '想要', type: 'verb' },
-            // Image 4
-            { en: 'breakfast', zh: '早餐', type: 'uncountable' },
-            { en: 'rice', zh: '米飯', type: 'uncountable' },
-            { en: 'soup', zh: '湯', type: 'uncountable' },
-            { en: 'lunch', zh: '午餐', type: 'uncountable' },
-            { en: 'noodles', zh: '麵', type: 'plural' }
-        ];
+<script>
+    const inputEl = document.getElementById('barcode19');
+    const charCountEl = document.getElementById('charCount');
+    const errorMsgEl = document.getElementById('errorMsg');
+    const resultBoxEl = document.getElementById('resultBox');
+    const checkDigitValEl = document.getElementById('checkDigitVal');
+    const fullBarcodeValEl = document.getElementById('fullBarcodeVal');
+    const calcBtn = document.getElementById('calcBtn');
 
-        // --- 2. 狀態變數 ---
-        let currentMode = ''; // 'vocab' or 'grammar'
-        let vocabDirection = ''; // 'en_to_zh' or 'zh_to_en'
-        let currentScore = 0;
-        let questionCount = 0;
-        let isAnswered = false;
+    inputEl.addEventListener('input', function() {
+        // 只允許輸入數字
+        this.value = this.value.replace(/\D/g, '');
+        const len = this.value.length;
+        charCountEl.textContent = `${len}/19`;
 
-        // --- 3. 音效 (Web Audio API) ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            if (type === 'correct') { // 輕快的高音
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime); // E5
-                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1); // A5
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.4);
-            } else { // 柔和的低音
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.3);
-            }
+        if (len === 19) {
+            errorMsgEl.style.display = 'none';
+            calculateAndRender();
+        } else {
+            resultBoxEl.classList.remove('active');
         }
+    });
 
-        function speakWord(text) {
-            // 只有英文才發音
-            if (/^[a-zA-Z\s]+$/.test(text)) {
-                const msg = new SpeechSynthesisUtterance();
-                msg.text = text;
-                msg.lang = 'en-US';
-                window.speechSynthesis.speak(msg);
-            }
+    calcBtn.addEventListener('click', function() {
+        if (inputEl.value.length !== 19) {
+            errorMsgEl.style.display = 'block';
+            resultBoxEl.classList.remove('active');
+        } else {
+            errorMsgEl.style.display = 'none';
+            calculateAndRender();
         }
+    });
 
-        // --- 4. 介面控制 ---
-        function showSection(id) {
-            document.getElementById('main-menu').style.display = (id === 'main-menu') ? 'flex' : 'none';
-            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-            if (id !== 'main-menu') document.getElementById(id).classList.add('active');
-            if (id === 'flashcards') initFlashcards();
+    function calculateMod10(digit19) {
+        let sum = 0;
+        // 由右至左計算加權 (奇數位*3, 偶數位*1)
+        for (let i = 0; i < 19; i++) {
+            let num = parseInt(digit19.charAt(18 - i), 10);
+            let weight = (i % 2 === 0) ? 3 : 1;
+            sum += num * weight;
         }
+        let remainder = sum % 10;
+        let checkDigit = (10 - remainder) % 10;
+        return checkDigit;
+    }
 
-        function initFlashcards() {
-            const container = document.getElementById('flashcard-list');
-            container.innerHTML = '';
-            vocabulary.forEach(word => {
-                const card = document.createElement('div');
-                card.className = 'flashcard';
-                card.innerHTML = `<div class="word-en">${word.en}</div><div class="word-zh">${word.zh}</div>`;
-                card.onclick = () => speakWord(word.en);
-                container.appendChild(card);
-            });
-        }
+    function calculateAndRender() {
+        const input = inputEl.value.trim();
+        if (input.length !== 19) return;
 
-        // --- 5. 測驗核心 ---
-        function resetQuizState(mode) {
-            currentMode = mode;
-            currentScore = 0;
-            questionCount = 0;
-            document.getElementById('current-score').textContent = 0;
-            document.getElementById('total-questions').textContent = 0;
-            document.getElementById('quit-btn').style.display = 'inline-block';
-            nextQuestion();
-        }
+        const checkDigit = calculateMod10(input);
+        const fullBarcode = input + checkDigit;
 
-        function nextQuestion() {
-            isAnswered = false;
-            document.getElementById('next-btn').style.display = 'none';
-            document.getElementById('feedback-icon').textContent = '';
-            
-            if (currentMode === 'vocab') generateVocabQuestion();
-            else generateGrammarQuestion();
-        }
+        checkDigitValEl.textContent = checkDigit;
+        fullBarcodeValEl.textContent = fullBarcode;
+        resultBoxEl.classList.add('active');
 
-        function handleAnswer(btn, isCorrect, correctText) {
-            if (isAnswered) return;
-            isAnswered = true;
-            questionCount++;
-            document.getElementById('total-questions').textContent = questionCount;
-            
-            const options = document.querySelectorAll('.option-btn');
-            options.forEach(b => b.disabled = true);
+        // 使用 JsBarcode 繪製 Code 128 條碼
+        JsBarcode("#barcode", fullBarcode, {
+            format: "CODE128",
+            lineColor: "#000",
+            width: 2,
+            height: 70,
+            displayValue: true,
+            fontSize: 16,
+            margin: 10
+        });
+    }
+</script>
 
-            const feedback = document.getElementById('feedback-icon');
-
-            if (isCorrect) {
-                currentScore++;
-                document.getElementById('current-score').textContent = currentScore;
-                btn.classList.add('correct');
-                feedback.innerHTML = '🎉';
-                playSound('correct');
-            } else {
-                btn.classList.add('wrong');
-                feedback.innerHTML = '🐷'; // 答錯顯示可愛豬豬
-                playSound('wrong');
-                options.forEach(b => {
-                    if (b.textContent === correctText) b.classList.add('correct');
-                });
-            }
-            document.getElementById('next-btn').style.display = 'inline-block';
-        }
-
-        function shuffle(array) { return array.sort(() => Math.random() - 0.5); }
-
-        // --- 6. 單字測驗 (雙模式) ---
-        function startVocabQuiz(direction) {
-            vocabDirection = direction; // 'en_to_zh' or 'zh_to_en'
-            showSection('quiz-area');
-            resetQuizState('vocab');
-        }
-
-        function generateVocabQuestion() {
-            const target = vocabulary[Math.floor(Math.random() * vocabulary.length)];
-            let question, correctAns, wrongPool;
-
-            if (vocabDirection === 'en_to_zh') {
-                // 題目：英文，選項：中文
-                question = target.en;
-                correctAns = target.zh;
-                wrongPool = vocabulary.filter(w => w.zh !== target.zh).map(w => w.zh);
-                speakWord(target.en); // 唸出題目
-            } else {
-                // 題目：中文，選項：英文
-                question = target.zh;
-                correctAns = target.en;
-                wrongPool = vocabulary.filter(w => w.en !== target.en).map(w => w.en);
-            }
-
-            document.getElementById('question-text').textContent = question;
-            
-            let options = [correctAns];
-            options = options.concat(shuffle(wrongPool).slice(0, 3));
-            options = shuffle(options);
-
-            const area = document.getElementById('options-area');
-            area.innerHTML = '';
-            options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.textContent = opt;
-                btn.onclick = () => {
-                    handleAnswer(btn, opt === correctAns, correctAns);
-                    if (vocabDirection === 'zh_to_en') speakWord(opt); // 選項是英文時，點擊發音
-                    else if (vocabDirection === 'en_to_zh' && opt === correctAns) speakWord(target.en); // 答對時重唸
-                };
-                area.appendChild(btn);
-            });
-        }
-
-        // --- 7. 語法測驗 ---
-        function startGrammarQuiz() {
-            showSection('quiz-area');
-            resetQuizState('grammar');
-        }
-
-        function generateGrammarQuestion() {
-            const type = Math.floor(Math.random() * 4);
-            const plurals = vocabulary.filter(w => w.type === 'plural');
-            const uncountables = vocabulary.filter(w => w.type === 'uncountable');
-            const randPl = plurals[Math.floor(Math.random() * plurals.length)];
-            const randUc = uncountables[Math.floor(Math.random() * uncountables.length)];
-
-            let qText = "", ans = "", opts = [];
-
-            switch(type) {
-                case 0: // How many/much
-                    if (Math.random() > 0.5) {
-                        qText = `_______ ${randPl.en} do you need?`; ans = "How many";
-                    } else {
-                        qText = `_______ ${randUc.en} do you need?`; ans = "How much";
-                    }
-                    opts = ["How many", "How much", "What", "Who"];
-                    break;
-                case 1: // is/are
-                    if (Math.random() > 0.5) {
-                        qText = `How much _______ the ${randPl.en}?`; ans = "are";
-                    } else {
-                        qText = `How much _______ the ${randUc.en}?`; ans = "is";
-                    }
-                    opts = ["is", "are", "do", "does"];
-                    break;
-                case 2: // do/does
-                    const subjs = [{s:"you",v:"do"}, {s:"he",v:"does"}, {s:"she",v:"does"}, {s:"Amy",v:"does"}];
-                    const pick = subjs[Math.floor(Math.random()*subjs.length)];
-                    qText = `_______ ${pick.s} want some ${randPl.en}?`;
-                    ans = pick.v === "do" ? "Do" : "Does";
-                    opts = ["Do", "Does", "Is", "Are"];
-                    break;
-                case 3: // Context
-                    const tpls = [
-                        {q: "I want one _______.", a: "hundred", o: ["hundred", "dollar", "much", "many"]},
-                        {q: "The soup is 50 _______.", a: "dollars", o: ["dollars", "dollar", "price", "is"]}, // Trick: dollars
-                        {q: "I eat _______ for lunch.", a: "noodles", o: ["noodles", "how many", "does", "dollar"]}
-                    ];
-                    const t = tpls[Math.floor(Math.random()*tpls.length)];
-                    qText = t.q; ans = t.a; opts = t.o;
-                    break;
-            }
-
-            if (!opts.includes(ans)) opts[0] = ans;
-            opts = shuffle(opts);
-
-            document.getElementById('question-text').textContent = qText;
-            const area = document.getElementById('options-area');
-            area.innerHTML = '';
-            opts.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.textContent = opt;
-                btn.onclick = () => {
-                    handleAnswer(btn, opt.toLowerCase() === ans.toLowerCase(), ans);
-                    speakWord(opt);
-                };
-                area.appendChild(btn);
-            });
-        }
-    </script>
 </body>
 </html>
